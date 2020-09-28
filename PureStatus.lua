@@ -3,11 +3,13 @@ Pure Status screen display
 
 This code goes into unit -> start() filter of the programming board
 
-1) Make sure you name your screen slot: displayT1, displayT2, displayT3, displayT4, displayT5
-2) Make sure to add a tick filter to unit slot, name the tick: updateTable
-3) In tick lua code, add: generateHtml()
-4) Add stop filter with lua code, add: displayOff()
-5) If you don't have a tier of pure containers, leave off the corresponding display
+    Make sure you name your screen slot: displayT1, displayT2, displayT3, displayT4, displayT5
+    Make sure to link the core, and rename the slot core.
+    Make sure to add a tick filter to unit slot, name the tick: updateTable
+    In tick lua code, add: generateHtml()
+    Add stop filter with lua code, add: displayOff()
+    If you don't have a tier of pure containers, leave off the corresponding display
+    Container Mass, and Volume can be changed individually under: Advanced > lua parameters.
 ]]
 
 unit.hide()
