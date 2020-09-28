@@ -1,5 +1,5 @@
 --[[
-Pure Refineries screen display
+Pure Status screen display
 
 This code goes into unit -> start() filter of the programming board
 
@@ -42,7 +42,7 @@ function generateHtml()
     end
 
     for i = 1, #elementsIds do
-        if core.getElementTypeById(elementsIds[i]) == "container" and string.match(core.getElementNameById(elementsIds[i]),"Pure") then
+        if core.getElementTypeById(elementsIds[i]) == "container" or core.getElementTypeById(elementsIds[i]) == "Container Hub" and string.match(core.getElementNameById(elementsIds[i]),"Pure") then
             table.insert(containers, newContainer(elementsIds[i]))
         end
     end
@@ -90,8 +90,6 @@ function generateHtml()
         statusPureAluminum = 0
     end
 
-
-
     -- PureCarbon Variables
     local maxPureCarbon = 10400 --export: This is the maximum mass allowed in container. Update as needed
     local weightPureCarbon = 2.27
@@ -110,7 +108,6 @@ function generateHtml()
         statusPureCarbon = 0
     end
 
-
     -- PureIron Variables
     local maxPureIron = 10400 --export: This is the maximum mass allowed in container. Update as needed
     local weightPureIron = 7.85
@@ -128,7 +125,6 @@ function generateHtml()
         percentPureIron = 0
         statusPureIron = 0
     end
-
 
     -- Pure Silicon Variables
     local maxPureSilicon = 10400 --export: This is the maximum mass allowed in container. Update as needed
@@ -501,7 +497,7 @@ function generateHtml()
                 background-color: blue;
                 color: white;
             ">
-                <th>Ore</th>
+                <th>Type</th>
                 <th>Qty</th>
                 <th>Levels</th>
                 <th>Status</th>
@@ -568,7 +564,7 @@ function generateHtml()
                 background-color: blue;
                 color: white;
             ">
-                <th>Ore</th>
+                <th>Type</th>
                 <th>Qty</th>
                 <th>Levels</th>
                 <th>Status</th>
@@ -624,7 +620,7 @@ function generateHtml()
                 background-color: blue;
                 color: white;
             ">
-                <th>Ore</th>
+                <th>Type</th>
                 <th>Qty</th>
                 <th>Levels</th>
                 <th>Status</th>
@@ -664,7 +660,7 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
-        ">T2 Pure Status</h1>
+        ">T4 Pure Status</h1>
         <table 
         style="
             margin-top: 10px;
@@ -680,7 +676,7 @@ function generateHtml()
                 background-color: blue;
                 color: white;
             ">
-                <th>Ore</th>
+                <th>Type</th>
                 <th>Qty</th>
                 <th>Levels</th>
                 <th>Status</th>
@@ -708,7 +704,6 @@ function generateHtml()
                 <th>]]..percentPureScandium..[[%</th>
                 ]]..statusPureScandium..[[
             </tr>
-            
         </table>
         </div>
         ]]
@@ -720,7 +715,7 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
-        ">T3 Pure Status</h1>
+        ">T5 Pure Status</h1>
         <table 
         style="
             margin-top: 10px;
@@ -736,7 +731,7 @@ function generateHtml()
                 background-color: blue;
                 color: white;
             ">
-                <th>Ore</th>
+                <th>Type</th>
                 <th>Qty</th>
                 <th>Levels</th>
                 <th>Status</th>
@@ -764,7 +759,6 @@ function generateHtml()
                 <th>]]..percentPureVanadium..[[%</th>
                 ]]..statusPureVanadium..[[
             </tr>
-            
         </table>
         </div>
         ]]
