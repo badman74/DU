@@ -70,7 +70,7 @@ function generateHtml()
 
     -- Bauxite Variables 
     local maxBauxiteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightBauxiteOre = 1.35
+    local weightBauxiteOre = 1.28
     local BauxiteOreContainerMass = 14840 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer,"Bauxite") then
@@ -149,7 +149,7 @@ function generateHtml()
 
     -- ChromiteOre Variables 
     local maxChromiteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightChromiteOre = 7.19
+    local weightChromiteOre = 4.54
     local ChromiteOreContainerMass = 14840 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Chromite") then
@@ -185,7 +185,7 @@ function generateHtml()
 
     -- LimestoneOre Variables 
     local maxLimestoneOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightLimestoneOre = 0.968
+    local weightLimestoneOre = 2.71
     local LimestoneOreContainerMass = 14840 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Limestone") then
