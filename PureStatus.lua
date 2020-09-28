@@ -4,8 +4,8 @@ Pure Status screen display
 This code goes into unit -> start() filter of the programming board
 
 1) Make sure you name your screen slot: displayT1, displayT2, displayT3, displayT4, displayT5
-2) Make sure to add a tick filter to unit slot, name the ticker: updateTable
-3) In ticker lua code, add: generateHtml()
+2) Make sure to add a tick filter to unit slot, name the tick: updateTable
+3) In tick lua code, add: generateHtml()
 4) Add stop filter with lua code, add: displayOff()
 5) If you don't have a tier of pure containers, leave off the corresponding display
 ]]
@@ -481,14 +481,16 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
+            text-transform: capitalize;
         ">T1 Pure Status</h1>
         <table 
         style="
             margin-top: 10px;
             margin-left: auto;
             margin-right: auto;
-            width: 80%;
+            width: 98%;
             font-size: 4em;
+            text-transform: capitalize;
         ">
             </br>
             <tr style="
@@ -496,6 +498,7 @@ function generateHtml()
                 margin-bottom: 30px;
                 background-color: blue;
                 color: white;
+                text-transform: capitalize;
             ">
                 <th>Type</th>
                 <th>Qty</th>
@@ -548,14 +551,16 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
+            text-transform: capitalize;
         ">T2 Pure Status</h1>
         <table 
         style="
             margin-top: 10px;
             margin-left: auto;
             margin-right: auto;
-            width: 80%;
+            width: 98%;
             font-size: 4em;
+            text-transform: capitalize;
         ">
             </br>
             <tr style="
@@ -563,6 +568,7 @@ function generateHtml()
                 margin-bottom: 30px;
                 background-color: blue;
                 color: white;
+                text-transform: capitalize;
             ">
                 <th>Type</th>
                 <th>Qty</th>
@@ -604,14 +610,16 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
+            text-transform: capitalize;
         ">T3 Pure Status</h1>
         <table 
         style="
             margin-top: 10px;
             margin-left: auto;
             margin-right: auto;
-            width: 80%;
+            width: 98%;
             font-size: 4em;
+            text-transform: capitalize;
         ">
             </br>
             <tr style="
@@ -619,6 +627,7 @@ function generateHtml()
                 margin-bottom: 30px;
                 background-color: blue;
                 color: white;
+                text-transform: capitalize;
             ">
                 <th>Type</th>
                 <th>Qty</th>
@@ -660,14 +669,16 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
+            text-transform: capitalize;
         ">T4 Pure Status</h1>
         <table 
         style="
             margin-top: 10px;
             margin-left: auto;
             margin-right: auto;
-            width: 80%;
+            width: 98%;
             font-size: 4em;
+            text-transform: capitalize;
         ">
             </br>
             <tr style="
@@ -675,6 +686,7 @@ function generateHtml()
                 margin-bottom: 30px;
                 background-color: blue;
                 color: white;
+                text-transform: capitalize;
             ">
                 <th>Type</th>
                 <th>Qty</th>
@@ -715,14 +727,16 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
+            text-transform: capitalize;
         ">T5 Pure Status</h1>
         <table 
         style="
             margin-top: 10px;
             margin-left: auto;
             margin-right: auto;
-            width: 80%;
+            width: 98%;
             font-size: 4em;
+            text-transform: capitalize;
         ">
             </br>
             <tr style="
@@ -730,6 +744,7 @@ function generateHtml()
                 margin-bottom: 30px;
                 background-color: blue;
                 color: white;
+                text-transform: capitalize;
             ">
                 <th>Type</th>
                 <th>Qty</th>

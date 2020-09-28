@@ -4,8 +4,8 @@ Ore Status screen display
 This code goes into unit -> start() filter of the programming board
 
 1) Make sure you name your screen slot: displayT1, displayT2, displayT3, displayT4, displayT5
-2) Make sure to add a tick filter to unit slot, name the ticker: updateTable
-3) In ticker lua code, add: generateHtml()
+2) Make sure to add a tick filter to unit slot, name the tick: updateTable
+3) In tick lua code, add: generateHtml()
 4) Add stop filter with lua code, add: displayOff()
 5) If you don't have a tier of ore containers, leave off the corresponding display
 ]]
@@ -71,7 +71,7 @@ function generateHtml()
     -- Bauxite Variables 
     local maxBauxiteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightBauxiteOre = 1.28
-    local BauxiteOreContainerMass = 14840 --export: This is the mass of the container.
+    local BauxiteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer,"Bauxite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -91,7 +91,7 @@ function generateHtml()
     -- CoalOre Variables
     local maxCoalOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightCoalOre = 1.35
-    local CoalOreContainerMass = 14840 --export: This is the mass of the container.
+    local CoalOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer,"Coal") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -110,7 +110,7 @@ function generateHtml()
     -- HematiteOre Variables
     local maxHematiteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightHematiteOre = 5.04
-    local HematiteOreContainerMass = 14840 --export: This is the mass of the container.
+    local HematiteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer,"Hematite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -129,7 +129,7 @@ function generateHtml()
     -- QuartzOre Variables
     local maxQuartzOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightQuartzOre = 2.65
-    local QuartzOreContainerMass = 14840 --export: This is the mass of the container.
+    local QuartzOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Quartz") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -150,7 +150,7 @@ function generateHtml()
     -- ChromiteOre Variables 
     local maxChromiteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightChromiteOre = 4.54
-    local ChromiteOreContainerMass = 14840 --export: This is the mass of the container.
+    local ChromiteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Chromite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -168,7 +168,7 @@ function generateHtml()
     -- MalachiteOre Variables 
     local maxMalachiteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightMalachiteOre = 4.00
-    local MalachiteOreContainerMass = 14840 --export: This is the mass of the container.
+    local MalachiteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Malachite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -186,7 +186,7 @@ function generateHtml()
     -- LimestoneOre Variables 
     local maxLimestoneOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightLimestoneOre = 2.71
-    local LimestoneOreContainerMass = 14840 --export: This is the mass of the container.
+    local LimestoneOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Limestone") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -204,7 +204,7 @@ function generateHtml()
     -- NatronOre Variables 
     local maxNatronOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightNatronOre = 1.55
-    local NatronOreContainerMass = 14840 --export: This is the mass of the container.
+    local NatronOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Natron") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -224,7 +224,7 @@ function generateHtml()
     -- GarnieriteOre Variables 
     local maxGarnieriteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightGarnieriteOre = 2.60
-    local GarnieriteOreContainerMass = 14840 --export: This is the mass of the container.
+    local GarnieriteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Garnierite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -242,7 +242,7 @@ function generateHtml()
     -- PetaliteOre Variables
     local maxPetaliteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightPetaliteOre = 2.41
-    local PetaliteOreContainerMass = 14840 --export: This is the mass of the container.
+    local PetaliteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Petalite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -260,7 +260,7 @@ function generateHtml()
     -- AcanthiteOre Variables
     local maxAcanthiteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightAcanthiteOre = 7.20
-    local AcanthiteOreContainerMass = 14840 --export: This is the mass of the container.
+    local AcanthiteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Acanthite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -278,7 +278,7 @@ function generateHtml()
     -- PyriteOre Variables
     local maxPyriteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightPyriteOre = 5.01
-    local PyriteOreContainerMass = 14840 --export: This is the mass of the container.
+    local PyriteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Pyrite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -298,7 +298,7 @@ function generateHtml()
     -- CobaltiteOre Variables 
     local maxCobaltiteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightCobaltiteOre = 6.33
-    local CobaltiteOreContainerMass = 14840 --export: This is the mass of the container.
+    local CobaltiteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Cobaltite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -316,7 +316,7 @@ function generateHtml()
     -- CryoliteOre Variables
     local maxCryoliteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightCryoliteOre = 2.95
-    local CryoliteOreContainerMass = 14840 --export: This is the mass of the container.
+    local CryoliteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Cryolite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -334,7 +334,7 @@ function generateHtml()
     -- GoldOre Variables
     local maxGoldOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightGoldOre = 19.30
-    local GoldOreContainerMass = 14840 --export: This is the mass of the container.
+    local GoldOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Gold") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -352,7 +352,7 @@ function generateHtml()
     -- KolbeckiteOre Variables
     local maxKolbeckiteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightKolbeckiteOre = 2.37
-    local KolbeckiteOreContainerMass = 14840 --export: This is the mass of the container.
+    local KolbeckiteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Kolbeckite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -372,7 +372,7 @@ function generateHtml()
     -- RhodoniteOre Variables 
     local maxRhodoniteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightRhodoniteOre = 3.76
-    local RhodoniteOreContainerMass = 14840 --export: This is the mass of the container.
+    local RhodoniteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Rhodonite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -390,7 +390,7 @@ function generateHtml()
     -- ColumbiteOre Variables
     local maxColumbiteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightColumbiteOre = 5.38
-    local ColumbiteOreContainerMass = 14840 --export: This is the mass of the container.
+    local ColumbiteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Columbite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -408,7 +408,7 @@ function generateHtml()
     -- IllmeniteOre Variables
     local maxIllmeniteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightIllmeniteOre = 4.55
-    local IllmeniteOreContainerMass = 14840 --export: This is the mass of the container.
+    local IllmeniteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Illmenite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -426,7 +426,7 @@ function generateHtml()
     -- VanadiniteOre Variables
     local maxVanadiniteOre = 166400 --export: This is the maximum mass allowed in container. Update as needed
     local weightVanadiniteOre = 6.95
-    local VanadiniteOreContainerMass = 14840 --export: This is the mass of the container.
+    local VanadiniteOreContainerMass = 0 --export: This is the mass of the container.
     for k, v in pairs(oreData) do
         if string.match(oreData[k].oreContainer, "Vanadinite") then
             local OreContainerMass = oreData[k].oreContainerMass
@@ -446,14 +446,16 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
+            text-transform: capitalize;
         ">T1 Ore Status</h1>
         <table 
         style="
             margin-top: 10px;
             margin-left: auto;
             margin-right: auto;
-            width: 80%;
+            width: 98%;
             font-size: 4em;
+            text-transform: capitalize;
         ">
             </br>
             <tr style="
@@ -461,6 +463,7 @@ function generateHtml()
                 margin-bottom: 30px;
                 background-color: blue;
                 color: white;
+                text-transform: capitalize;
             ">
                 <th>Type</th>
                 <th>Qty</th>
@@ -501,14 +504,16 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
+            text-transform: capitalize;
         ">T2 Ore Status</h1>
         <table 
         style="
             margin-top: 10px;
             margin-left: auto;
             margin-right: auto;
-            width: 80%;
+            width: 98%;
             font-size: 4em;
+            text-transform: capitalize;
         ">
             </br>
             <tr style="
@@ -516,6 +521,7 @@ function generateHtml()
                 margin-bottom: 30px;
                 background-color: blue;
                 color: white;
+                text-transform: capitalize;
             ">
                 <th>Type</th>
                 <th>Qty</th>
@@ -556,14 +562,16 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
+            text-transform: capitalize;
         ">T3 Ore Status</h1>
         <table 
         style="
             margin-top: 10px;
             margin-left: auto;
             margin-right: auto;
-            width: 80%;
+            width: 98%;
             font-size: 4em;
+            text-transform: capitalize;
         ">
             </br>
             <tr style="
@@ -571,6 +579,7 @@ function generateHtml()
                 margin-bottom: 30px;
                 background-color: blue;
                 color: white;
+                text-transform: capitalize;
             ">
                 <th>Type</th>
                 <th>Qty</th>
@@ -612,14 +621,16 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
+            text-transform: capitalize;
         ">T4 Ore Status</h1>
         <table 
         style="
             margin-top: 10px;
             margin-left: auto;
             margin-right: auto;
-            width: 80%;
+            width: 98%;
             font-size: 4em;
+            text-transform: capitalize;
         ">
             </br>
             <tr style="
@@ -627,6 +638,7 @@ function generateHtml()
                 margin-bottom: 30px;
                 background-color: blue;
                 color: white;
+                text-transform: capitalize;
             ">
                 <th>Type</th>
                 <th>Qty</th>
@@ -668,14 +680,16 @@ function generateHtml()
         <div class="bootstrap">
         <h1 style="
             font-size: 8em;
+            text-transform: capitalize;
         ">T5 Ore Status</h1>
         <table 
         style="
             margin-top: 10px;
             margin-left: auto;
             margin-right: auto;
-            width: 80%;
+            width: 98%;
             font-size: 4em;
+            text-transform: capitalize;
         ">
             </br>
             <tr style="
@@ -683,6 +697,7 @@ function generateHtml()
                 margin-bottom: 30px;
                 background-color: blue;
                 color: white;
+                text-transform: capitalize;
             ">
                 <th>Type</th>
                 <th>Qty</th>
