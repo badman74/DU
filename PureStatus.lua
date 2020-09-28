@@ -10,6 +10,7 @@ This code goes into unit -> start() filter of the programming board
     Add stop filter with lua code, add: displayOff()
     If you don't have a tier of pure containers, leave off the corresponding display
     Container Mass, and Volume can be changed individually under: Advanced > lua parameters.
+    if you use Container Hubs, name the hub, don't name the containers, as that will cause issues, also Hub container weight is 0.
 ]]
 
 unit.hide()
