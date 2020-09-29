@@ -380,7 +380,7 @@ function generateHtml()
         if string.match(oreData[k].oreContainer, "Rhodonite") then
             local OreContainerMass = oreData[k].oreContainerMass
             massRhodoniteOre = round(math.ceil((OreContainerMass - RhodoniteOreContainerMass) / weightRhodoniteOre),1)
-            percentRhodoniteOre = math.ceil(((math.ceil((massManganeseCobalt*1000) - 0.5)/maxRhodoniteOre)*100))
+            percentRhodoniteOre = math.ceil(((math.ceil((massManganeseRhodoniteOre*1000) - 0.5)/maxRhodoniteOre)*100))
             statusRhodoniteOre = oreStatus(percentRhodoniteOre)
         end
     end
