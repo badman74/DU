@@ -8,9 +8,10 @@ This code goes into unit -> start() filter of the programming board
     Make sure to add a tick filter to unit slot, name the tick: updateTable
     In tick lua code, add: generateHtml()
     Add stop filter with lua code, add: displayOff()
-    If you don't have a tier of pure containers, leave off the corresponding display
+    If you don't have a tier of containers, leave off the corresponding display
     Container Mass, and Volume can be changed individually under: Advanced > lua parameters.
-    if you use Container Hubs, name the hub, don't name the containers, as that will cause issues, also Hub container weight is 0.
+    If you use Container Hubs, name the hub, don't name the containers, as that will cause issues, also Hub container weight is 0.
+    Currently, all containers need to be the same size.
 ]]
 
 unit.hide()
@@ -32,7 +33,7 @@ function generateHtml()
 
     elementsIds = core.getElementIdList()
     containers = {}
-    pureData = {}
+    data = {}
 
     function newContainer(_id)
         local container = 
@@ -45,13 +46,13 @@ function generateHtml()
     end
 
     for i = 1, #elementsIds do
-        if core.getElementTypeById(elementsIds[i]) == "container" or core.getElementTypeById(elementsIds[i]) == "Container Hub" and string.match(core.getElementNameById(elementsIds[i]),"Pure") then
+        if string.match(core.getElementTypeById(elementsIds[i]), "ontainer") and string.match(core.getElementNameById(elementsIds[i]),"Pure") then
             table.insert(containers, newContainer(elementsIds[i]))
         end
     end
 
     for i = 1, #containers do
-        table.insert(pureData, {pureContainer = containers[i].name, pureContainerMass = containers[i].mass})
+        table.insert(data, {Container = containers[i].name, ContainerMass = containers[i].mass})
     end
 
     function round(number,decimals)
@@ -59,7 +60,7 @@ function generateHtml()
         return math.floor((number/1000) * power) / power
     end 
 
-    function pureStatus(percent)
+    function Status(percent)
         if percent <= 25 then return "<th style=\"color: red;\">LOW</th>"
         elseif percent > 25 and percent < 50 then return "<th style=\"color: orange;\">LOW</th>"
         else return "<th style=\"color: green;\">GOOD</th>"
@@ -73,410 +74,349 @@ function generateHtml()
         end 
     end
 
+    local pureContainerSelfMass = 1280 --export: This is the mass of the container, hubs are 0
+    local maxPureContainerVol = 10400 --export: This is the maximum volume allowed in the container. Update as needed
+    local Error = "<th style=\"color: red;\">ERROR</th>"
+
 --T1 Stuff
 
     -- PureAluminum Variables 
-    local maxPureAluminum = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureAluminum = 2.70
-    local PureAluminumContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer,"Alumin") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureAluminum = round(math.ceil((PureContainerMass - PureAluminumContainerMass) / weightPureAluminum),1)
-            percentPureAluminum = math.ceil(((math.ceil((massPureAluminum*1000) - 0.5)/maxPureAluminum)*100))
-            statusPureAluminum = pureStatus(percentPureAluminum)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container,"Alumin") then
+            local weight = 2.70
+            massPureAluminum = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureAluminum = math.ceil(((math.ceil((massPureAluminum*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureAluminum = Status(percentPureAluminum)
         end
     end
     if massPureAluminum == nil then
         massPureAluminum = 0
-        percentAluminum = 0
-        statusPureAluminum = 0
+        percentPureAluminum = 0
+        statusPureAluminum = Error
     end
 
     -- PureCarbon Variables
-    local maxPureCarbon = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureCarbon = 2.27
-    local PureCarbonContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer,"Carbon") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureCarbon = round(math.ceil((PureContainerMass - PureCarbonContainerMass) / weightPureCarbon),1)
-            percentPureCarbon = math.ceil(((math.ceil((massPureCarbon*1000) - 0.5)/maxPureCarbon)*100))
-            statusPureCarbon = pureStatus(percentPureCarbon)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container,"Carbon") then
+            local weight = 2.27
+            massPureCarbon = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureCarbon = math.ceil(((math.ceil((massPureCarbon*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureCarbon = Status(percentPureCarbon)
         end
     end
     if massPureCarbon == nil then
         massPureCarbon = 0
         percentPureCarbon = 0
-        statusPureCarbon = 0
+        statusPureCarbon = Error
     end
 
     -- PureIron Variables
-    local maxPureIron = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureIron = 7.85
-    local PureIronContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer,"Iron") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureIron = round(math.ceil((PureContainerMass - PureIronContainerMass) / weightPureIron),1)
-            percentPureIron = math.ceil(((math.ceil((massPureIron*1000) - 0.5)/maxPureIron)*100))
-            statusPureIron = pureStatus(percentPureIron)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container,"Iron") then
+            local weight = 7.85
+            massPureIron = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureIron = math.ceil(((math.ceil((massPureIron*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureIron = Status(percentPureIron)
         end
     end
     if massPureIron == nil then
         massPureIron = 0
         percentPureIron = 0
-        statusPureIron = 0
+        statusPureIron = Error
     end
 
     -- Pure Silicon Variables
-    local maxPureSilicon = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureSilicon = 2.33
-    local PureSiliconContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Silicon") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureSilicon = round(math.ceil((PureContainerMass - PureSiliconContainerMass) / weightPureSilicon),1)
-            percentPureSilicon = math.ceil(((math.ceil((massPureSilicon*1000) - 0.5)/maxPureSilicon)*100))
-            statusPureSilicon = pureStatus(percentPureSilicon)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Silicon") then
+            local weight = 2.33
+            massPureSilicon = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureSilicon = math.ceil(((math.ceil((massPureSilicon*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureSilicon = Status(percentPureSilicon)
         end
     end
     if massPureSilicon == nil then
-        massPureSilicon= 0
+        massPureSilicon = 0
         percentPureSilicon = 0
-        statusPureSilicon = 0
+        statusPureSilicon = Error
     end
 
     -- PureOxygen Variables 
-    local maxPureOxygen = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureOxygen = 1
-    local PureOxygenContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Oxygen") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureOxygen = round(math.ceil((PureContainerMass - PureOxygenContainerMass) / weightPureOxygen),1)
-            percentPureOxygen = math.ceil(((math.ceil((massPureOxygen*1000) - 0.5)/maxPureOxygen)*100))
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Oxygen") then
+            local weight = 1
+            massPureOxygen = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureOxygen = math.ceil(((math.ceil((massPureOxygen*1000) - 0.5)/maxPureContainerVol)*100))
             statusPureOxygen = hoStatus(percentPureOxygen)
         end
     end
     if massPureOxygen == nil then
         massPureOxygen = 0
         percentPureOxygen = 0
-        statusPureOxygen = 0
+        statusPureOxygen = Error
     end
 
     -- PureHydrogen Variables 
-    local maxPureHydrogen = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureHydrogen = 0.07
-    local PureHydrogenContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Hydrogen") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureHydrogen = round(math.ceil((PureContainerMass - PureHydrogenContainerMass) / weightPureHydrogen),1)
-            percentPureHydrogen = math.ceil(((math.ceil((massPureHydrogen*1000) - 0.5)/maxPureHydrogen)*100))
+
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Hydrogen") then
+            local weight = 0.07
+            massPureHydrogen = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureHydrogen = math.ceil(((math.ceil((massPureHydrogen*1000) - 0.5)/maxPureContainerVol)*100))
             statusPureHydrogen = hoStatus(percentPureHydrogen)
         end
     end
     if massPureHydrogen == nil then
         massPureHydrogen = 0
         percentPureHydrogen = 0
-        statusPureHydrogen = 0
+        statusPureHydrogen = "<th style=\"color: red;\">ERROR</th>"
     end
 
 --T2 Stuff
 
     -- PureCalcium Variables 
-    local maxPureCalcium = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureCalcium = 1.55
-    local PureCalciumContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Calcium") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureCalcium = round(math.ceil((PureContainerMass - PureCalciumContainerMass) / weightPureCalcium),1)
-            percentPureCalcium = math.ceil(((math.ceil((massPureCalcium*1000) - 0.5)/maxPureCalcium)*100))
-            statusPureCalcium = pureStatus(percentPureCalcium)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Calcium") then
+            local weight = 1.55
+            massPureCalcium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureCalcium = math.ceil(((math.ceil((massPureCalcium*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureCalcium = Status(percentPureCalcium)
         end
     end
     if massPureCalcium == nil then
         massPureCalcium = 0
         percentPureCalcium = 0
-        statusPureCalcium = 0
+        statusPureCalcium = Error
     end
 
     -- PureChromium Variables 
-    local maxPureChromium = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureChromium = 7.19
-    local PureChromiumContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Chromium") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureChromium = round(math.ceil((PureContainerMass - PureChromiumContainerMass) / weightPureChromium),1)
-            percentPureChromium = math.ceil(((math.ceil((massPureChromium*1000) - 0.5)/maxPureChromium)*100))
-            statusPureChromium = pureStatus(percentPureChromium)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Chromium") then
+            local weight = 7.19
+            massPureChromium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureChromium = math.ceil(((math.ceil((massPureChromium*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureChromium = Status(percentPureChromium)
         end
     end
     if massPureChromium == nil then
         massPureChromium = 0
         percentPureChromium = 0
-        statusPureChromium = 0
+        statusPureChromium = Error
     end
 
     -- PureCopper Variables 
-    local maxPureCopper = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureCopper = 8.96
-    local PureCopperContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Copper") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureCopper = round(math.ceil((PureContainerMass - PureCopperContainerMass) / weightPureCopper),1)
-            percentPureCopper = math.ceil(((math.ceil((massPureCopper*1000) - 0.5)/maxPureCopper)*100))
-            statusPureCopper = pureStatus(percentPureCopper)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Copper") then
+            local weight = 8.96
+            massPureCopper = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureCopper = math.ceil(((math.ceil((massPureCopper*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureCopper = Status(percentPureCopper)
         end
     end
     if massPureCopper == nil then
         massPureCopper = 0
         percentPureCopper = 0
-        statusPureCopper = 0
+        statusPureCopper = Error
     end
 
     -- PureSodium Variables 
-    local maxPureSodium = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureSodium = 0.97
-    local PureSodiumContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Sodium") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureSodium = round(math.ceil((PureContainerMass - PureSodiumContainerMass) / weightPureSodium),1)
-            percentPureSodium = math.ceil(((math.ceil((massPureSodium*1000) - 0.5)/maxPureSodium)*100))
-            statusPureSodium = pureStatus(percentPureSodium)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Sodium") then
+            local weight = 0.97
+            massPureSodium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureSodium = math.ceil(((math.ceil((massPureSodium*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureSodium = Status(percentPureSodium)
         end
     end
     if massPureSodium == nil then
         massPureSodium = 0
         percentPureSodium = 0
-        statusPureSodium = 0
+        statusPureSodium = Error
     end
 
 --T3 Stuff
 
     -- PureLithium Variables 
-    local maxPureLithium = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureLithium = 0.53
-    local PureLithiumContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Lithium") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureLithium = round(math.ceil((PureContainerMass - PureLithiumContainerMass) / weightPureLithium),1)
-            percentPureLithium = math.ceil(((math.ceil((massPureLithium*1000) - 0.5)/maxPureLithium)*100))
-            statusPureLithium = pureStatus(percentPureLithium)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Lithium") then
+            local weight = 0.53
+            massPureLithium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureLithium = math.ceil(((math.ceil((massPureLithium*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureLithium = Status(percentPureLithium)
         end
     end
     if massPureLithium == nil then
         massPureLithium = 0
         percentPureLithium = 0
-        statusPureLithium = 0
+        statusPureLithium = Error
     end
 
     -- PureNickel Variables
-    local maxPureNickel = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureNickel = 8.91
-    local PureNickelContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Nickel") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureNickel = round(math.ceil((PureContainerMass - PureNickelContainerMass) / weightPureNickel),1)
-            percentPureNickel = math.ceil(((math.ceil((massPureNickel*1000) - 0.5)/maxPureNickel)*100))
-            statusPureNickel = pureStatus(percentPureNickel)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Nickel") then
+            local weight = 8.91
+            massPureNickel = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureNickel = math.ceil(((math.ceil((massPureNickel*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureNickel = Status(percentPureNickel)
         end
     end
     if massPureNickel == nil then
         massPureNickel = 0
         percentPureNickel = 0
-        statusPureNickel = 0
+        statusPureNickel = Error
     end
 
     -- PureSilver Variables
-    local maxPureSilver = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureSilver = 10.49
-    local PureSilverContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Silver") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureSilver = round(math.ceil((PureContainerMass - PureSilverContainerMass) / weightPureSilver),1)
-            percentPureSilver = math.ceil(((math.ceil((massPureSilver*1000) - 0.5)/maxPureSilver)*100))
-            statusPureSilver = pureStatus(percentPureSilver)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Silver") then
+            local weight = 10.49
+            massPureSilver = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureSilver = math.ceil(((math.ceil((massPureSilver*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureSilver = Status(percentPureSilver)
         end
     end
     if massPureSilver == nil then
         massPureSilver = 0
         percentPureSilver = 0
-        statusPureSilver = 0
+        statusPureSilver = Error
     end
 
     -- Pure Sulfur Variables
-    local maxPureSulfur = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureSulfur = 1.82
-    local PureSulfurContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Sulfur") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureSulfur = round(math.ceil((PureContainerMass - PureSulfurContainerMass) / weightPureSulfur),1)
-            percentPureSulfur = math.ceil(((math.ceil((massPureSulfur*1000) - 0.5)/maxPureSulfur)*100))
-            statusPureSulfur = pureStatus(percentPureSulfur)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Sulfur") then
+            local weight = 1.82
+            massPureSulfur = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureSulfur = math.ceil(((math.ceil((massPureSulfur*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureSulfur = Status(percentPureSulfur)
         end
     end
     if massPureSulfur == nil then
         massPureSulfur = 0
         percentPureSulfur = 0
-        statusPureSulfur = 0
+        statusPureSulfur = Error
     end
 
 --T4 Stuff
 
     -- PureCobalt Variables 
-    local maxPureCobalt = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureCobalt = 8.90
-    local PureCobaltContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Cobalt") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureCobalt = round(math.ceil((PureContainerMass - PureCobaltContainerMass) / weightPureCobalt),1)
-            percentPureCobalt = math.ceil(((math.ceil((massPureCobalt*1000) - 0.5)/maxPureCobalt)*100))
-            statusPureCobalt = pureStatus(percentPureCobalt)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Cobalt") then
+            local weight = 8.90
+            massPureCobalt = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureCobalt = math.ceil(((math.ceil((massPureCobalt*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureCobalt = Status(percentPureCobalt)
         end
     end
     if massPureCobalt == nil then
         massPureCobalt = 0
         percentPureCobalt = 0
-        statusPureCobalt = 0
+        statusPureCobalt = Error
     end
 
     -- PureFluorine Variables
-    local maxPureFluorine = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureFluorine = 1.70
-    local PureFluorineContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Fluorine") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureFluorine = round(math.ceil((PureContainerMass - PureFluorineContainerMass) / weightPureFluorine),1)
-            percentPureFluorine = math.ceil(((math.ceil((massPureFluorine*1000) - 0.5)/maxPureFluorine)*100))
-            statusPureFluorine = pureStatus(percentPureFluorine)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Fluorine") then
+            local weight = 1.70
+            massPureFluorine = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureFluorine = math.ceil(((math.ceil((massPureFluorine*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureFluorine = Status(percentPureFluorine)
         end
     end
     if massPureFluorine == nil then
         massPureFluorine = 0
         percentPureFluorine = 0
-        statusPureFluorine = 0
+        statusPureFluorine = Error
     end
 
     -- PureGold Variables
-    local maxPureGold = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureGold = 19.30
-    local PureGoldContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Gold") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureGold = round(math.ceil((PureContainerMass - PureGoldContainerMass) / weightPureGold),1)
-            percentPureGold = math.ceil(((math.ceil((massPureGold*1000) - 0.5)/maxPureGold)*100))
-            statusPureGold = pureStatus(percentPureGold)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Gold") then
+            local weight = 19.30
+            massPureGold = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureGold = math.ceil(((math.ceil((massPureGold*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureGold = Status(percentPureGold)
         end
     end
     if massPureGold == nil then
         massPureGold = 0
         percentPureGold = 0
-        statusPureGold = 0
+        statusPureGold = Error
     end
 
     -- Pure Scandium Variables
-    local maxPureScandium = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureScandium = 2.98
-    local PureScandiumContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Scandium") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureScandium = round(math.ceil((PureContainerMass - PureScandiumContainerMass) / weightPureScandium),1)
-            percentPureScandium = math.ceil(((math.ceil((massPureScandium*1000) - 0.5)/maxPureScandium)*100))
-            statusPureScandium = pureStatus(percentPureScandium)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Scandium") then
+            local weight = 2.98
+            massPureScandium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureScandium = math.ceil(((math.ceil((massPureScandium*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureScandium = Status(percentPureScandium)
         end
     end
     if massPureScandium == nil then
         massPureScandium = 0
         percentPureScandium = 0
-        statusPureScandium = 0
+        statusPureScandium = Error
     end
 
 --T5 Stuff
 
     -- PureManganese Variables 
-    local maxPureManganese = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureManganese = 7.21
-    local PureManganeseContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Manganese") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureManganese = round(math.ceil((PureContainerMass - PureManganeseContainerMass) / weightPureManganese),1)
-            percentPureManganese = math.ceil(((math.ceil((massManganeseCobalt*1000) - 0.5)/maxPureManganese)*100))
-            statusPureManganese = pureStatus(percentPureManganese)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Manganese") then
+            local weight = 7.21
+            massPureManganese = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureManganese = math.ceil(((math.ceil((massManganeseCobalt*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureManganese = Status(percentPureManganese)
         end
     end
     if massPureManganese == nil then
         massPureManganese = 0
         percentPureManganese = 0
-        statusPureManganese = 0
+        statusPureManganese = Error
     end
 
     -- PureNiobium Variables
-    local maxPureNiobium = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureNiobium = 8.57
-    local PureNiobiumContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Niobium") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureNiobium = round(math.ceil((PureContainerMass - PureNiobiumContainerMass) / weightPureNiobium),1)
-            percentPureNiobium = math.ceil(((math.ceil((massPureNiobium*1000) - 0.5)/maxPureNiobium)*100))
-            statusPureNiobium = pureStatus(percentPureNiobium)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Niobium") then
+            local weight = 8.57
+            massPureNiobium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureNiobium = math.ceil(((math.ceil((massPureNiobium*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureNiobium = Status(percentPureNiobium)
         end
     end
     if massPureNiobium == nil then
         massPureNiobium = 0
         percentPureNiobium = 0
-        statusPureNiobium = 0
+        statusPureNiobium = Error
     end
 
     -- PureTitanium Variables
-    local maxPureTitanium = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureTitanium = 4.51
-    local PureTitaniumContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Titanium") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureTitanium = round(math.ceil((PureContainerMass - PureTitaniumContainerMass) / weightPureTitanium),1)
-            percentPureTitanium = math.ceil(((math.ceil((massPureTitanium*1000) - 0.5)/maxPureTitanium)*100))
-            statusPureTitanium = pureStatus(percentPureTitanium)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Titanium") then
+            local weight = 4.51
+            massPureTitanium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureTitanium = math.ceil(((math.ceil((massPureTitanium*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureTitanium = Status(percentPureTitanium)
         end
     end
     if massPureTitanium == nil then
         massPureTitanium = 0
         percentPureTitanium = 0
-        statusPureTitanium = 0
+        statusPureTitanium = Error
     end
 
     -- Pure Vanadium Variables
-    local maxPureVanadium = 10400 --export: This is the maximum mass allowed in container. Update as needed
-    local weightPureVanadium = 6.00
-    local PureVanadiumContainerMass = 1280 --export: This is the mass of the container.
-    for k, v in pairs(pureData) do
-        if string.match(pureData[k].pureContainer, "Vanadium") then
-            local PureContainerMass = pureData[k].pureContainerMass
-            massPureVanadium = round(math.ceil((PureContainerMass - PureVanadiumContainerMass) / weightPureVanadium),1)
-            percentPureVanadium = math.ceil(((math.ceil((massPureVanadium*1000) - 0.5)/maxPureVanadium)*100))
-            statusPureVanadium = pureStatus(percentPureVanadium)
+    for k, v in pairs(data) do
+        if string.match(data[k].Container, "Vanadium") then
+            local weight = 6.0
+            massPureVanadium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
+            percentPureVanadium = math.ceil(((math.ceil((massPureVanadium*1000) - 0.5)/maxPureContainerVol)*100))
+            statusPureVanadium = Status(percentPureVanadium)
         end
     end
     if massPureVanadium == nil then
         massPureVanadium = 0
         percentPureVanadium = 0
-        statusPureVanadium = 0
+        statusPureVanadium = Error
     end
 
     if displayT1 then
@@ -505,41 +445,48 @@ function generateHtml()
             ">
                 <th>Type</th>
                 <th>Qty</th>
+                <th>MaxQty</th>
                 <th>Levels</th>
                 <th>Status</th>
             <tr>
                 <th>Pure Aluminium</th>
                 <th>]]..massPureAluminum..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureAluminum..[[%</th>
                 ]]..statusPureAluminum..[[
             </tr>
             <tr>
                 <th>Pure Carbon</th>
                 <th>]]..massPureCarbon..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureCarbon..[[%</th>
                 ]]..statusPureCarbon..[[
             </tr>
             <tr>
                 <th>Pure Iron</th>
                 <th>]]..massPureIron..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureIron..[[%</th>
                 ]]..statusPureIron..[[
             </tr>
             <tr>
                 <th>Pure Silicon</th>
                 <th>]]..massPureSilicon..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureSilicon..[[%</th>
                 ]]..statusPureSilicon..[[
             </tr>
             <tr>
                 <th>Pure Hydrogen</th>
                 <th>]]..massPureHydrogen..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureHydrogen..[[%</th>
                 ]]..statusPureHydrogen..[[
             </tr>
             <tr>
                 <th>Pure Oxygen</th>
                 <th>]]..massPureOxygen..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureOxygen..[[%</th>
                 ]]..statusPureOxygen..[[
             </tr>
@@ -575,29 +522,34 @@ function generateHtml()
             ">
                 <th>Type</th>
                 <th>Qty</th>
+                <th>MaxQty</th>
                 <th>Levels</th>
                 <th>Status</th>
             <tr>
                 <th>Pure Sodium</th>
                 <th>]]..massPureSodium..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureSodium..[[%</th>
                 ]]..statusPureSodium..[[
             </tr>
             <tr>
                 <th>Pure Chromium</th>
                 <th>]]..massPureChromium..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureChromium..[[%</th>
                 ]]..statusPureChromium..[[
             </tr>
             <tr>
                 <th>Pure Copper</th>
                 <th>]]..massPureCopper..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureCopper..[[%</th>
                 ]]..statusPureCopper..[[
             </tr>
             <tr>
                 <th>Pure Calcium</th>
                 <th>]]..massPureCalcium..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureCalcium..[[%</th>
                 ]]..statusPureCalcium..[[
             </tr>
@@ -634,29 +586,34 @@ function generateHtml()
             ">
                 <th>Type</th>
                 <th>Qty</th>
+                <th>MaxQty</th>
                 <th>Levels</th>
                 <th>Status</th>
             <tr>
                 <th>Pure Nickel</th>
                 <th>]]..massPureNickel..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureNickel..[[%</th>
                 ]]..statusPureNickel..[[
             </tr>
             <tr>
                 <th>Pure Lithium</th>
                 <th>]]..massPureLithium..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureLithium..[[%</th>
                 ]]..statusPureLithium..[[
             </tr>
             <tr>
                 <th>Pure Sulfur</th>
                 <th>]]..massPureSulfur..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureSulfur..[[%</th>
                 ]]..statusPureSulfur..[[
             </tr>
             <tr>
                 <th>Pure Silver</th>
                 <th>]]..massPureSilver..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureSilver..[[%</th>
                 ]]..statusPureSilver..[[
             </tr>
@@ -693,29 +650,34 @@ function generateHtml()
             ">
                 <th>Type</th>
                 <th>Qty</th>
+                <th>MaxQty</th>
                 <th>Levels</th>
                 <th>Status</th>
             <tr>
                 <th>Pure Cobalt</th>
                 <th>]]..massPureCobalt..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureCobalt..[[%</th>
                 ]]..statusPureCobalt..[[
             </tr>
             <tr>
                 <th>Pure Fluorine</th>
                 <th>]]..massPureFluorine..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureFluorine..[[%</th>
                 ]]..statusPureFluorine..[[
             </tr>
             <tr>
                 <th>Pure Gold</th>
                 <th>]]..massPureGold..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureGold..[[%</th>
                 ]]..statusPureGold..[[
             </tr>
             <tr>
                 <th>Pure Scandium</th>
                 <th>]]..massPureScandium..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureScandium..[[%</th>
                 ]]..statusPureScandium..[[
             </tr>
@@ -751,29 +713,34 @@ function generateHtml()
             ">
                 <th>Type</th>
                 <th>Qty</th>
+                <th>MaxQty</th>
                 <th>Levels</th>
                 <th>Status</th>
             <tr>
                 <th>Pure Manganese</th>
                 <th>]]..massPureManganese..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureManganese..[[%</th>
                 ]]..statusPureManganese..[[
             </tr>
             <tr>
                 <th>Pure Niobium</th>
                 <th>]]..massPureNiobium..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureNiobium..[[%</th>
                 ]]..statusPureNiobium..[[
             </tr>
             <tr>
                 <th>Pure Titanium</th>
                 <th>]]..massPureTitanium..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureTitanium..[[%</th>
                 ]]..statusPureTitanium..[[
             </tr>
             <tr>
                 <th>Pure Vanadium</th>
                 <th>]]..massPureVanadium..[[KL]]..[[</th>
+                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
                 <th>]]..percentPureVanadium..[[%</th>
                 ]]..statusPureVanadium..[[
             </tr>
