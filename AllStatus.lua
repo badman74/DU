@@ -8,7 +8,7 @@
     Make sure to add a tick filter to unit slot, name the tick: updateTable
     In tick lua code, add: generateHtml()
     Add stop filter with lua code, add: displayOff()
-    If you don't have a tier of pure containers, leave off the corresponding display.
+    If you don't have a tier of containers, leave off the corresponding display.
     Container Mass, and Volume are now autocalculated, ecxept for hubs.
     Enter your Hub Volume, Container Proficiency % and Container Optimization % (without the -) in advanced > lua parameters.
     Containers should be named such as Pure Aluminum and Bauxite Ore to be properly indexed.
@@ -980,7 +980,8 @@ function generateHtml()
                 ]]..BarGraph(percentMalachiteOre)..[[%
                 ]]..statusMalachiteOre..[[
             </tr>
-            <th>Copper</th>
+            <tr>
+                <th>Copper</th>
                 <th>]]..massPureCopper..[[KL]]..[[</th>
                 <th>]]..maxVolPureCopper ..[[KL]]..[[</th>
                 ]]..BarGraph(percentPureCopper)..[[%
@@ -993,7 +994,8 @@ function generateHtml()
                 ]]..BarGraph(percentLimestoneOre)..[[%
                 ]]..statusLimestoneOre..[[
             </tr>
-            <th>Calcium</th>
+            </tr>
+                <th>Calcium</th>
                 <th>]]..massPureCalcium..[[KL]]..[[</th>
                 <th>]]..maxVolPureCalcium ..[[KL]]..[[</th>
                 ]]..BarGraph(percentPureCalcium)..[[%
@@ -1078,7 +1080,8 @@ function generateHtml()
 
     if displayT4 then
         html = d1..[[T4 Rare Status]]..t1..
-                [[<th>Cobaltite</th>
+            [[<tr>
+                <th>Cobaltite</th>
                 <th>]]..massCobaltiteOre..[[KL]]..[[</th>
                 <th>]]..maxVolCobaltiteOre ..[[KL]]..[[</th>
                 ]]..BarGraph(percentCobaltiteOre)..[[%
