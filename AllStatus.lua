@@ -1,7 +1,7 @@
 --[[
-Ore Status screen display
+    Status screen display
 
-This code goes into unit -> start() filter of the programming board
+    This code goes into unit -> start() filter of the programming board
 
     Make sure you name your screen slot: displayT1, displayT2, displayT3, displayT4, displayT5
     Make sure to link the core, and rename the slot core.
@@ -230,7 +230,7 @@ function generateHtml()
     if massPureHydrogen == nil then
         massPureHydrogen = 0
         percentPureHydrogen = 0
-        statusPureHydrogen = "<th style=\"color: red;\">ERROR</th>"
+        statusPureHydrogen = Error
     end
 
 --T2 Stuff
@@ -511,7 +511,7 @@ function generateHtml()
 
     -- GoldOre Variables
     for k, v in pairs(data) do
-        if string.match(data[k].Container, "Gold") then
+        if string.match(data[k].Container, "Gold Ore") then
             local weight = 19.30
             massGoldOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
             percentGoldOre = math.ceil(((math.ceil((massGoldOre*1000) - 0.5)/maxOreContainerVol)*100))
@@ -541,7 +541,7 @@ function generateHtml()
 
     -- PureCobalt Variables 
     for k, v in pairs(data) do
-        if string.match(data[k].Container, "Cobalt") then
+        if string.match(data[k].Container, "Pure Cobalt") then
             local weight = 8.90
             massPureCobalt = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
             percentPureCobalt = math.ceil(((math.ceil((massPureCobalt*1000) - 0.5)/maxPureContainerVol)*100))
@@ -571,7 +571,7 @@ function generateHtml()
 
     -- PureGold Variables
     for k, v in pairs(data) do
-        if string.match(data[k].Container, "Gold") then
+        if string.match(data[k].Container, "Pure Gold") then
             local weight = 19.30
             massPureGold = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
             percentPureGold = math.ceil(((math.ceil((massPureGold*1000) - 0.5)/maxPureContainerVol)*100))
@@ -721,469 +721,348 @@ function generateHtml()
         statusPureVanadium = Error
     end
 
-    if displayT1 then
-        html = [[
-        <div class="bootstrap">
-        <h1 style="
-            font-size: 5em;
+    maxOCV = maxOreContainerVol/1000
+    maxPCV = maxPureContainerVol/1000
+
+    d1 = [[<div class="bootstrap">
+            <h1 style="font-size: 6em;">]]
+    t1 = [[</h1>
+        <table style="
             text-transform: capitalize;
-        ">T1 Status</h1>
-        <table 
-        style="
-            margin-top: auto;
-            margin-left: auto;
-            margin-right: auto;
-            width: 98%;
-            font-size: 3em;
-            text-transform: capitalize;
+            font-size: 4em;
+            table-layout: auto;
+            width: 100%;
         ">
-            </br>
-            <tr style="
-                width: 100%;
-                margin-bottom: auto;
-                background-color: blue;
-                color: white;
-                text-transform: capitalize;
-            ">
-                <th>Type</th>
-                <th>Qty</th>
-                <th>MaxQty</th>
-                <th>Levels</th>
-                <th>Status</th>
-            <tr>
+        </br>
+        <tr style="
+            width:100%;
+            background-color: blue;
+            color: white;
+        ">
+            <th>Type</th>
+            <th>Qty</th>
+            <th>MaxQty</th>
+            <th>Levels</th>
+            <th>Status</th>
+        </tr>
+        ]]
+    c1 = [[
+            </table>
+            </div>
+         ]]
+
+    if displayT1 then
+        html = d1..[[T1 Basic Status]]..t1..
+            [[<tr>
                 <th>Bauxite</th>
                 <th>]]..massBauxiteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentBauxiteOre..[[%</th>
                 ]]..statusBauxiteOre..[[
             </tr>
             <tr>
                 <th>Aluminium</th>
                 <th>]]..massPureAluminum..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureAluminum..[[%</th>
                 ]]..statusPureAluminum..[[
             </tr>
             <tr>
                 <th>Coal</th>
                 <th>]]..massCoalOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentCoalOre..[[%</th>
                 ]]..statusCoalOre..[[
             </tr>
             <tr>
                 <th>Carbon</th>
                 <th>]]..massPureCarbon..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureCarbon..[[%</th>
                 ]]..statusPureCarbon..[[
             </tr>
             <tr>
                 <th>Hematite</th>
                 <th>]]..massHematiteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentHematiteOre..[[%</th>
                 ]]..statusHematiteOre..[[
             </tr>
             <tr>
                 <th>Iron</th>
                 <th>]]..massPureIron..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureIron..[[%</th>
                 ]]..statusPureIron..[[
             </tr>
             <tr>
                 <th>Quartz</th>
                 <th>]]..massQuartzOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentQuartzOre..[[%</th>
                 ]]..statusQuartzOre..[[
             </tr>
             <tr>
                 <th>Silicon</th>
                 <th>]]..massPureSilicon..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureSilicon..[[%</th>
                 ]]..statusPureSilicon..[[
             </tr>
             <tr>
                 <th>Hydrogen</th>
                 <th>]]..massPureHydrogen..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureHydrogen..[[%</th>
                 ]]..statusPureHydrogen..[[
             </tr>
             <tr>
                 <th>Oxygen</th>
                 <th>]]..massPureOxygen..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureOxygen..[[%</th>
-                ]]..statusPureOxygen..[[
-            </tr>
-        </table>
-        </div>
-        ]]
+                ]]..statusPureOxygen..
+                c1
         displayT1.setHTML(html)
     end
 
     if displayT2 then
-        html = [[
-        <div class="bootstrap">
-        <h1 style="
-            font-size: 5em;
-            text-transform: capitalize;
-        ">T2 Status</h1>
-        <table 
-        style="
-            margin-top: auto;
-            margin-left: auto;
-            margin-right: auto;
-            width: 98%;
-            font-size: 3em;
-            text-transform: capitalize;
-        ">
-            </br>
-            <tr style="
-                width: 100%;
-                margin-bottom: auto;
-                background-color: blue;
-                color: white;
-                text-transform: capitalize;
-            ">
-                <th>Type</th>
-                <th>Qty</th>
-                <th>MaxQty</th>
-                <th>Levels</th>
-                <th>Status</th>
-            <tr>
+        html = d1..[[T2 Uncommon Status]]..t1..
+            [[<tr>
                 <th>Natron</th>
                 <th>]]..massNatronOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentNatronOre..[[%</th>
                 ]]..statusNatronOre..[[
             </tr>
             <tr>
                 <th>Sodium</th>
                 <th>]]..massPureSodium..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureSodium..[[%</th>
                 ]]..statusPureSodium..[[
             </tr>
             <tr>
                 <th>Malachite</th>
                 <th>]]..massMalachiteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentMalachiteOre..[[%</th>
                 ]]..statusMalachiteOre..[[
             </tr>
             <th>Copper</th>
                 <th>]]..massPureCopper..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureCopper..[[%</th>
                 ]]..statusPureCopper..[[
             </tr>
             <tr>
                 <th>Limestone</th>
                 <th>]]..massLimestoneOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentLimestoneOre..[[%</th>
                 ]]..statusLimestoneOre..[[
             </tr>
             <th>Calcium</th>
                 <th>]]..massPureCalcium..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureCalcium..[[%</th>
                 ]]..statusPureCalcium..[[
             </tr>
             <tr>
                 <th>Chromite</th>
                 <th>]]..massChromiteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentChromiteOre..[[%</th>
                 ]]..statusChromiteOre..[[
             </tr>
             <th>Chromium</th>
                 <th>]]..massPureChromium..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureChromium..[[%</th>
-                ]]..statusPureChromium..[[
-            </tr>
-        </table>
-        </div>
-        ]]
+                ]]..statusPureChromium..
+                c1
         displayT2.setHTML(html)
     end
 
     if displayT3 then
-        html = [[
-               <div class="bootstrap">
-        <h1 style="
-            font-size: 5em;
-            text-transform: capitalize;
-        ">T3 Status</h1>
-        <table 
-        style="
-            margin-top: auto;
-            margin-left: auto;
-            margin-right: auto;
-            width: 98%;
-            font-size: 3em;
-            text-transform: capitalize;
-        ">
-            </br>
-            <tr style="
-                width: 100%;
-                margin-bottom: auto;
-                background-color: blue;
-                color: white;
-                text-transform: capitalize;
-            ">
-                <th>Type</th>
-                <th>Qty</th>
-                <th>MaxQty</th>
-                <th>Levels</th>
-                <th>Status</th>
-            <tr>
+        html = d1..[[T3 Advanced Status]]..t1..
+            [[<tr>
                 <th>Petalite</th>
                 <th>]]..massPetaliteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentPetaliteOre..[[%</th>
                 ]]..statusPetaliteOre..[[
             </tr>
             <tr>
                 <th>Lithium</th>
                 <th>]]..massPureLithium..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureLithium..[[%</th>
                 ]]..statusPureLithium..[[
             </tr>
             <tr>
                 <th>Garnierite</th>
                 <th>]]..massGarnieriteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentGarnieriteOre..[[%</th>
                 ]]..statusGarnieriteOre..[[
             </tr>
             <tr>
                 <th>Nickel</th>
                 <th>]]..massPureNickel..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureNickel..[[%</th>
                 ]]..statusPureNickel..[[
             </tr>
             <tr>
                 <th>Pyrite</th>
                 <th>]]..massPyriteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentPyriteOre..[[%</th>
                 ]]..statusPyriteOre..[[
             </tr>
             <tr>
                 <th>Sulfur</th>
                 <th>]]..massPureSulfur..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureSulfur..[[%</th>
                 ]]..statusPureSulfur..[[
             </tr>
             <tr>
                 <th>Acanthite</th>
                 <th>]]..massAcanthiteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentAcanthiteOre..[[%</th>
                 ]]..statusAcanthiteOre..[[
             </tr>
             <tr>
                 <th>Silver</th>
                 <th>]]..massPureSilver..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureSilver..[[%</th>
-                ]]..statusPureSilver..[[
-            </tr>
-        </table>
-        </div>
-        ]]
+                ]]..statusPureSilver..
+                c1
         displayT3.setHTML(html)
     end
 
     if displayT4 then
-        html = [[
-                <div class="bootstrap">
-        <h1 style="
-            font-size: 5em;
-            text-transform: capitalize;
-        ">T4 Status</h1>
-        <table 
-        style="
-            margin-top: auto;
-            margin-left: auto;
-            margin-right: auto;
-            width: 98%;
-            font-size: 3em;
-            text-transform: capitalize;
-        ">
-            </br>
-            <tr style="
-                width: 100%;
-                margin-bottom: auto;
-                background-color: blue;
-                color: white;
-                text-transform: capitalize;
-            ">
-                <th>Type</th>
-                <th>Qty</th>
-                <th>MaxQty</th>
-                <th>Levels</th>
-                <th>Status</th>
-            <tr>
-                <th>Cobaltite</th>
+        html = d1..[[T4 Rare Status]]..t1..
+                [[<th>Cobaltite</th>
                 <th>]]..massCobaltiteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentCobaltiteOre..[[%</th>
                 ]]..statusCobaltiteOre..[[
             </tr>
             <tr>
                 <th>Cobalt</th>
                 <th>]]..massPureCobalt..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureCobalt..[[%</th>
                 ]]..statusPureCobalt..[[
             </tr>
             <tr>
                 <th>Cryolite</th>
                 <th>]]..massCryoliteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentCryoliteOre..[[%</th>
                 ]]..statusCryoliteOre..[[
             </tr>
             <tr>
                 <th>Fluorine</th>
                 <th>]]..massPureFluorine..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureFluorine..[[%</th>
                 ]]..statusPureFluorine..[[
             </tr>
             <tr>
                 <th>Gold Nuggets</th>
                 <th>]]..massGoldOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentGoldOre..[[%</th>
                 ]]..statusGoldOre..[[
             </tr>
             <tr>
                 <th>Gold</th>
                 <th>]]..massPureGold..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureGold..[[%</th>
                 ]]..statusPureGold..[[
             </tr>
             <tr>
                 <th>Kolbeckite</th>
                 <th>]]..massKolbeckiteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentKolbeckiteOre..[[%</th>
                 ]]..statusKolbeckiteOre..[[
             </tr>
             <tr>
                 <th>Scandium</th>
                 <th>]]..massPureScandium..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureScandium..[[%</th>
-                ]]..statusPureScandium..[[
-            </tr>
-        </table>
-        </div>
-        ]]
+                ]]..statusPureScandium..
+                c1
         displayT4.setHTML(html)
     end
 
     if displayT5 then
-        html = [[
-                <div class="bootstrap">
-        <h1 style="
-            font-size: 5em;
-            text-transform: capitalize;
-        ">T5 Status</h1>
-        <table 
-        style="
-            margin-top: auto;
-            margin-left: auto;
-            margin-right: auto;
-            width: 98%;
-            font-size: 3em;
-            text-transform: capitalize;
-        ">
-            </br>
-            <tr style="
-                width: 100%;
-                margin-bottom: auto;
-                background-color: blue;
-                color: white;
-                text-transform: capitalize;
-            ">
-                <th>Type</th>
-                <th>Qty</th>
-                <th>MaxQty</th>
-                <th>Levels</th>
-                <th>Status</th>
-            <tr>
+        html = d1..[[T5 Exotic Status]]..t1..
+            [[<tr>
                 <th>Rhodonite</th>
                 <th>]]..massRhodoniteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentRhodoniteOre..[[%</th>
                 ]]..statusRhodoniteOre..[[
             </tr>
             <tr>
                 <th>Manganese</th>
                 <th>]]..massPureManganese..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureManganese..[[%</th>
                 ]]..statusPureManganese..[[
             </tr>
             <tr>
                 <th>Columbite</th>
                 <th>]]..massColumbiteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentColumbiteOre..[[%</th>
                 ]]..statusColumbiteOre..[[
             </tr>
             <tr>
                 <th>Niobium</th>
                 <th>]]..massPureNiobium..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureNiobium..[[%</th>
                 ]]..statusPureNiobium..[[
             </tr>
             <tr>
                 <th>Illmenite</th>
                 <th>]]..massIllmeniteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentIllmeniteOre..[[%</th>
                 ]]..statusIllmeniteOre..[[
             </tr>
             <tr>
                 <th>Titanium</th>
                 <th>]]..massPureTitanium..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureTitanium..[[%</th>
                 ]]..statusPureTitanium..[[
             </tr>
             <tr>
                 <th>Vanadinite</th>
                 <th>]]..massVanadiniteOre..[[KL]]..[[</th>
-                <th>]]..maxOreContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxOCV ..[[KL]]..[[</th>
                 <th>]]..percentVanadiniteOre..[[%</th>
                 ]]..statusVanadiniteOre..[[
             </tr>
             <tr>
                 <th>Vanadium</th>
                 <th>]]..massPureVanadium..[[KL]]..[[</th>
-                <th>]]..maxPureContainerVol/1000 ..[[KL]]..[[</th>
+                <th>]]..maxPCV ..[[KL]]..[[</th>
                 <th>]]..percentPureVanadium..[[%</th>
-                ]]..statusPureVanadium..[[
-            </tr>
-        </table>
-        </div>
-        ]]
+                ]]..statusPureVanadium..
+                c1
         displayT5.setHTML(html)
     end
 end
