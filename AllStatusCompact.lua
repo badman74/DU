@@ -9,9 +9,10 @@
     Make sure to add a tick filter to unit slot, name the tick: updateTable
     In tick lua code, add: generateHtml()
     Add stop filter with lua code, add: displayOff()
-    Container Mass, and Volume can be changed individually under: Advanced > lua parameters.
+    Container Mass, and Volume are now autocalculated, ecxept for hubs.
+    Enter your Hub Volume, Container Proficiency % and Container Optimization % (without the -) in advanced > lua parameters.
     Containers should be named such as Pure Aluminum and Bauxite Ore to be properly indexed.
-    If you use Container Hubs, name the hub, don't name the containers, as that will cause issues, also Hub container weight is 0.
+    If you use Container Hubs, name the hub, don't name the containers, as that will cause issues.
 ]]
 
 unit.hide()
@@ -37,6 +38,7 @@ function generateHtml()
             id = _id;
             name = core.getElementNameById(_id);
             mass = core.getElementMassById(_id);
+            maxHp = core.getElementMaxHitPointsById(_id);
         }
         return container
     end
@@ -48,13 +50,38 @@ function generateHtml()
     end
 
     for i = 1, #containers do
-        table.insert(data, {Container = containers[i].name, ContainerMass = containers[i].mass})
+        table.insert(data, {Container = containers[i].name, ContainerMass = containers[i].mass, maxHp = containers[i].maxHp})
     end
 
     function round(number,decimals)
         local power = 10^decimals
         return math.floor((number/1000) * power) / power
     end 
+
+    function ContainerMaxVol(hp)
+        if hp > 49 and hp <=123 then vol = hub
+        elseif hp > 123 and hp <= 998 then vol = (1000+(1000*(containerProficiency/100)))
+        elseif hp > 998 and hp <= 7996 then vol = (8000+(8000*(containerProficiency/100)))
+        elseif hp > 7996 and hp <= 17315 then vol = (64000+(64000*(containerProficiency/100)))
+        elseif hp > 17315 then vol = (128000+(128000*(containerProficiency/100)))
+        end
+        return vol
+    end
+
+    function ContainerSelfMass(hp)
+        if hp > 49 and hp <=123 then sm = 0
+        elseif hp > 123 and hp <= 998 then sm = 229.09
+        elseif hp > 998 and hp <= 7996 then sm = 1280
+        elseif hp > 7996 and hp <= 17315 then sm = 7420
+        elseif hp > 17315 then sm = 14840
+        end
+        return sm
+    end
+
+    function OptimizedContainerMass(mass)
+        oMass = (mass+(mass*(containerOptimization/100)))
+        return oMass
+    end
 
     function BarGraph(percent)
         if percent <= 0 then barcolour = "red"
@@ -66,17 +93,17 @@ function generateHtml()
         return "<td class=\"bar\" > <svg ><rect x=\"0\" y=\"5\" height=\"30\" width=\"140\" stroke=\"white\" stroke-width=\"1\"  rx=\"4\" /><rect x=\"0\" y=\"5\" height=\"30\" width=\"" .. percent * 1.4 .. "\"  fill=\"" .. barcolour .. "\" opacity=\"0.8\" rx=\"2\"/><text x=\"5\" y=\"30\" fill=\"white\" text-align=\"center\" margin-left=\"5\">" .. percent .. "%</text> </svg></td>"        
     end
 
-    local oreContainerSelfMass = 0 --export: This is the mass of the container, hubs are 0
-    local maxOreContainerVol = 166400 --export: This is the maximum volume allowed in the container. Update as needed
-    local pureContainerSelfMass = 1280 --export: This is the mass of the container, hubs are 0
-    local maxPureContainerVol = 10400 --export: This is the maximum volume allowed in the container. Update as needed
+    hub = 166400 --export: This is the total volume of your hub, at present, all hubs need to be the same
+    containerProficiency = 30 --export: This is the % voume increase of your Container Proficiency talent
+    containerOptimization = 0 --export: This is the % mass decrease of your Container Optimization talent
+
 --T1 Stuff
     -- Bauxite Variables 
     for k, v in pairs(data) do
         if string.match(data[k].Container,"Bauxite") then
             local weight = 1.28
-            massBauxiteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentBauxiteOre = math.ceil(((math.ceil((massBauxiteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massBauxiteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentBauxiteOre = math.ceil(((math.ceil((massBauxiteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massBauxiteOre == nil then
@@ -88,8 +115,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container,"Coal") then
             local weight = 1.35
-            massCoalOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentCoalOre = math.ceil(((math.ceil((massCoalOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massCoalOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentCoalOre = math.ceil(((math.ceil((massCoalOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massCoalOre == nil then
@@ -101,8 +128,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container,"Hematite") then
             local weight = 5.04
-            massHematiteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentHematiteOre = math.ceil(((math.ceil((massHematiteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massHematiteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentHematiteOre = math.ceil(((math.ceil((massHematiteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massHematiteOre == nil then
@@ -114,8 +141,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Quartz") then
             local weight = 2.65
-            massQuartzOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentQuartzOre = math.ceil(((math.ceil((massQuartzOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massQuartzOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentQuartzOre = math.ceil(((math.ceil((massQuartzOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massQuartzOre == nil then
@@ -127,8 +154,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container,"Alumin") then
             local weight = 2.70
-            massPureAluminum = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureAluminum = math.ceil(((math.ceil((massPureAluminum*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureAluminum = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureAluminum = math.ceil(((math.ceil((massPureAluminum*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureAluminum == nil then
@@ -140,8 +167,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container,"Carbon") then
             local weight = 2.27
-            massPureCarbon = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureCarbon = math.ceil(((math.ceil((massPureCarbon*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureCarbon = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureCarbon = math.ceil(((math.ceil((massPureCarbon*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureCarbon == nil then
@@ -153,8 +180,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container,"Iron") then
             local weight = 7.85
-            massPureIron = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureIron = math.ceil(((math.ceil((massPureIron*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureIron = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureIron = math.ceil(((math.ceil((massPureIron*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureIron == nil then
@@ -166,8 +193,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Silicon") then
             local weight = 2.33
-            massPureSilicon = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureSilicon = math.ceil(((math.ceil((massPureSilicon*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureSilicon = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureSilicon = math.ceil(((math.ceil((massPureSilicon*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureSilicon == nil then
@@ -179,8 +206,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Oxygen") then
             local weight = 1
-            massPureOxygen = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureOxygen = math.ceil(((math.ceil((massPureOxygen*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureOxygen = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureOxygen = math.ceil(((math.ceil((massPureOxygen*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureOxygen == nil then
@@ -193,8 +220,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Hydrogen") then
             local weight = 0.07
-            massPureHydrogen = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureHydrogen = math.ceil(((math.ceil((massPureHydrogen*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureHydrogen = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureHydrogen = math.ceil(((math.ceil((massPureHydrogen*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureHydrogen == nil then
@@ -208,8 +235,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Chromite") then
             local weight = 4.54
-            massChromiteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentChromiteOre = math.ceil(((math.ceil((massChromiteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massChromiteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentChromiteOre = math.ceil(((math.ceil((massChromiteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massChromiteOre == nil then
@@ -221,8 +248,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Malachite") then
             local weight = 4.00
-            massMalachiteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentMalachiteOre = math.ceil(((math.ceil((massMalachiteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massMalachiteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentMalachiteOre = math.ceil(((math.ceil((massMalachiteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massMalachiteOre == nil then
@@ -234,8 +261,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Limestone") then
             local weight = 2.71
-            massLimestoneOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentLimestoneOre = math.ceil(((math.ceil((massLimestoneOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massLimestoneOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentLimestoneOre = math.ceil(((math.ceil((massLimestoneOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massLimestoneOre == nil then
@@ -247,8 +274,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Natron") then
             local weight = 1.55
-            massNatronOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentNatronOre = math.ceil(((math.ceil((massNatronOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massNatronOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentNatronOre = math.ceil(((math.ceil((massNatronOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massNatronOre == nil then
@@ -260,8 +287,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Calcium") then
             local weight = 1.55
-            massPureCalcium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureCalcium = math.ceil(((math.ceil((massPureCalcium*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureCalcium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureCalcium = math.ceil(((math.ceil((massPureCalcium*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureCalcium == nil then
@@ -273,8 +300,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Chromium") then
             local weight = 7.19
-            massPureChromium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureChromium = math.ceil(((math.ceil((massPureChromium*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureChromium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureChromium = math.ceil(((math.ceil((massPureChromium*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureChromium == nil then
@@ -286,8 +313,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Copper") then
             local weight = 8.96
-            massPureCopper = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureCopper = math.ceil(((math.ceil((massPureCopper*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureCopper = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureCopper = math.ceil(((math.ceil((massPureCopper*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureCopper == nil then
@@ -299,8 +326,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Sodium") then
             local weight = 0.97
-            massPureSodium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureSodium = math.ceil(((math.ceil((massPureSodium*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureSodium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureSodium = math.ceil(((math.ceil((massPureSodium*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureSodium == nil then
@@ -314,8 +341,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Garnierite") then
             local weight = 2.60
-            massGarnieriteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentGarnieriteOre = math.ceil(((math.ceil((massGarnieriteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massGarnieriteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentGarnieriteOre = math.ceil(((math.ceil((massGarnieriteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massGarnieriteOre == nil then
@@ -327,8 +354,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Petalite") then
             local weight = 2.41
-            massPetaliteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentPetaliteOre = math.ceil(((math.ceil((massPetaliteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massPetaliteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPetaliteOre = math.ceil(((math.ceil((massPetaliteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPetaliteOre == nil then
@@ -340,8 +367,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Acanthite") then
             local weight = 7.20
-            massAcanthiteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentAcanthiteOre = math.ceil(((math.ceil((massAcanthiteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massAcanthiteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentAcanthiteOre = math.ceil(((math.ceil((massAcanthiteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massAcanthiteOre == nil then
@@ -353,8 +380,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Pyrite") then
             local weight = 5.01
-            massPyriteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentPyriteOre = math.ceil(((math.ceil((massPyriteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massPyriteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPyriteOre = math.ceil(((math.ceil((massPyriteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPyriteOre == nil then
@@ -366,8 +393,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Lithium") then
             local weight = 0.53
-            massPureLithium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureLithium = math.ceil(((math.ceil((massPureLithium*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureLithium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureLithium = math.ceil(((math.ceil((massPureLithium*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureLithium == nil then
@@ -379,8 +406,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Nickel") then
             local weight = 8.91
-            massPureNickel = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureNickel = math.ceil(((math.ceil((massPureNickel*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureNickel = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureNickel = math.ceil(((math.ceil((massPureNickel*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureNickel == nil then
@@ -392,8 +419,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Silver") then
             local weight = 10.49
-            massPureSilver = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureSilver = math.ceil(((math.ceil((massPureSilver*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureSilver = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureSilver = math.ceil(((math.ceil((massPureSilver*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureSilver == nil then
@@ -405,8 +432,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Sulfur") then
             local weight = 1.82
-            massPureSulfur = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureSulfur = math.ceil(((math.ceil((massPureSulfur*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureSulfur = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureSulfur = math.ceil(((math.ceil((massPureSulfur*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureSulfur == nil then
@@ -420,8 +447,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Cobaltite") then
             local weight = 6.33
-            massCobaltiteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentCobaltiteOre = math.ceil(((math.ceil((massCobaltiteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massCobaltiteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentCobaltiteOre = math.ceil(((math.ceil((massCobaltiteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massCobaltiteOre == nil then
@@ -433,8 +460,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Cryolite") then
             local weight = 2.95
-            massCryoliteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentCryoliteOre = math.ceil(((math.ceil((massCryoliteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massCryoliteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentCryoliteOre = math.ceil(((math.ceil((massCryoliteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massCryoliteOre == nil then
@@ -446,8 +473,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Gold Ore") then
             local weight = 19.30
-            massGoldOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentGoldOre = math.ceil(((math.ceil((massGoldOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massGoldOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentGoldOre = math.ceil(((math.ceil((massGoldOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massGoldOre == nil then
@@ -459,8 +486,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Kolbeckite") then
             local weight = 2.37
-            massKolbeckiteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentKolbeckiteOre = math.ceil(((math.ceil((massKolbeckiteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massKolbeckiteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentKolbeckiteOre = math.ceil(((math.ceil((massKolbeckiteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massKolbeckiteOre == nil then
@@ -472,8 +499,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Pure Cobalt") then
             local weight = 8.90
-            massPureCobalt = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureCobalt = math.ceil(((math.ceil((massPureCobalt*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureCobalt = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureCobalt = math.ceil(((math.ceil((massPureCobalt*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureCobalt == nil then
@@ -485,8 +512,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Fluorine") then
             local weight = 1.70
-            massPureFluorine = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureFluorine = math.ceil(((math.ceil((massPureFluorine*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureFluorine = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureFluorine = math.ceil(((math.ceil((massPureFluorine*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureFluorine == nil then
@@ -498,8 +525,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Pure Gold") then
             local weight = 19.30
-            massPureGold = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureGold = math.ceil(((math.ceil((massPureGold*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureGold = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureGold = math.ceil(((math.ceil((massPureGold*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureGold == nil then
@@ -511,8 +538,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Scandium") then
             local weight = 2.98
-            massPureScandium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureScandium = math.ceil(((math.ceil((massPureScandium*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureScandium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureScandium = math.ceil(((math.ceil((massPureScandium*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureScandium == nil then
@@ -526,8 +553,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Rhodonite") then
             local weight = 3.76
-            massRhodoniteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentRhodoniteOre = math.ceil(((math.ceil((massRhodoniteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massRhodoniteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentRhodoniteOre = math.ceil(((math.ceil((massRhodoniteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massRhodoniteOre == nil then
@@ -539,8 +566,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Columbite") then
             local weight = 5.38
-            massColumbiteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentColumbiteOre = math.ceil(((math.ceil((massColumbiteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massColumbiteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentColumbiteOre = math.ceil(((math.ceil((massColumbiteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massColumbiteOre == nil then
@@ -552,8 +579,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Illmenite") then
             local weight = 4.55
-            massIllmeniteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentIllmeniteOre = math.ceil(((math.ceil((massIllmeniteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massIllmeniteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentIllmeniteOre = math.ceil(((math.ceil((massIllmeniteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massIllmeniteOre == nil then
@@ -565,8 +592,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Vanadinite") then
             local weight = 6.95
-            massVanadiniteOre = round(math.ceil((data[k].ContainerMass - oreContainerSelfMass) / weight),1)
-            percentVanadiniteOre = math.ceil(((math.ceil((massVanadiniteOre*1000) - 0.5)/maxOreContainerVol)*100))
+            massVanadiniteOre = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentVanadiniteOre = math.ceil(((math.ceil((massVanadiniteOre*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massVanadiniteOre == nil then
@@ -578,8 +605,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Manganese") then
             local weight = 7.21
-            massPureManganese = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureManganese = math.ceil(((math.ceil((massManganeseCobalt*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureManganese = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureManganese = math.ceil(((math.ceil((massManganeseCobalt*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureManganese == nil then
@@ -591,8 +618,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Niobium") then
             local weight = 8.57
-            massPureNiobium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureNiobium = math.ceil(((math.ceil((massPureNiobium*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureNiobium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureNiobium = math.ceil(((math.ceil((massPureNiobium*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureNiobium == nil then
@@ -604,8 +631,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Titanium") then
             local weight = 4.51
-            massPureTitanium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureTitanium = math.ceil(((math.ceil((massPureTitanium*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureTitanium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureTitanium = math.ceil(((math.ceil((massPureTitanium*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureTitanium == nil then
@@ -617,8 +644,8 @@ function generateHtml()
     for k, v in pairs(data) do
         if string.match(data[k].Container, "Vanadium") then
             local weight = 6.0
-            massPureVanadium = round(math.ceil((data[k].ContainerMass - pureContainerSelfMass) / weight),1)
-            percentPureVanadium = math.ceil(((math.ceil((massPureVanadium*1000) - 0.5)/maxPureContainerVol)*100))
+            massPureVanadium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
+            percentPureVanadium = math.ceil(((math.ceil((massPureVanadium*1000) - 0.5)/(ContainerMaxVol(data[k].maxHp)))*100))
         end
     end
     if massPureVanadium == nil then
@@ -626,8 +653,6 @@ function generateHtml()
         percentPureVanadium = 0
     end
 
-    maxOCV = maxOreContainerVol/1000
-    maxPCV = maxPureContainerVol/1000
 
     d1 = [[
             <head>
