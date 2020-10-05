@@ -1,944 +1,206 @@
 --[[
-    Status screen display
+    Pure Status Display
 
-    This code goes into unit -> start() filter of the programming board
+    Refactored thanks to Dorian Gray
 
-    Make sure you name your screen slot: displayT1, displayT2, displayT3, displayT4, displayT5
-    Make sure to link the core, and rename the slot core.
-    Make sure to add a tick filter to unit slot, name the tick: updateTable
-    In tick lua code, add: generateHtml()
-    Add stop filter with lua code, add: displayOff()
-    If you don't have a tier of containers, leave off the corresponding display.
-    Container Mass, and Volume are now autocalculated, ecxept for hubs.
-    Enter your Hub Volume, Container Proficiency % and Container Optimization % (without the -) in advanced > lua parameters.
-    Containers should be named such as Pure Aluminum and Bauxite Ore to be properly indexed.
-    If you use Container Hubs, name the hub, don't name the containers, as that will cause issues.
-    Will now count extra pure containers if you have more than one for linkage purposes.
+    1. Copy & paste this script into your Programming Board, into slot "unit" and filter "start()"
+    2. Add a "stop()" filter and enter "display1.clear()" into the Lua editor for this filter
+    3. Add a "tick()" filter and enter the parameter "updateTick, so "tick(updateTick)". In the Lua editor for the filter enter "processTick()"
+    4. Link the core this setup is placed on to your Programming Board and rename the slot to "core"
+    5. Link 1 screen to your Programming Board, preferably S or larger, and name the slot "display1".
+    6. Rename your pure storage boxes you want this script to observe. Pures must be named "Pure <purename>", e.g. "Pure Alumnium". Any wrongly named container will not be observed.You can rename the searchString under Advanced->Edit Lua Parameters, You MUST include spaces not in the actual substance name. You can have more than one container for a single substance, if you have e.g. three large containers for Aluminum, name all of them "Pure Aluminum". The script does not support multiple substances in one container.
+    7. On your Programming Board choose Advanced->Edit Lua Parameters and enter your Container Proficiency Bonus in percent (0 to 50) and your Container Optimization Bonus in percent (0-25)
+    8. If you want to use hubs, please note that all hubs must have the same volume in order for the display to work correctly, and you must enter the total volume of a hub as "DefaultHubVolume" as in (7).
+    9. Activate the Programming Board.
 ]]
 
 unit.hide()
-if displayT1 then displayT1.activate() end
-if displayT2 then displayT2.activate() end
-if displayT3 then displayT3.activate() end
-if displayT4 then displayT4.activate() end
-if displayT5 then displayT5.activate() end
+display1.activate()
 
-function displayOff()
-    if displayT1 then displayT1.clear() end
-    if displayT2 then displayT2.clear() end
-    if displayT3 then displayT3.clear() end
-    if displayT4 then displayT4.clear() end
-    if displayT5 then displayT5.clear() end
-end
+function round(number,decimals)
+    local power = 10^decimals
+    return math.floor((number/1000) * power) / power
+end 
 
-function generateHtml()
+PlayerContainerProficiency = 30 --export Your Container Proficiency bonus in total percent (Skills->Mining and Inventory->Inventory Manager)
+PlayerContainerOptimization = 0 --export Your Container Optimization bonus in total percent (Skills->Mining and Inventory->Stock Control)
+DefaultHubVolume = 166400 --export The total volume of your hubs (note: all hubs must have same volume!)
+MinimumYellowPercent = 25 --export At which percent level do you want bars to be drawn in yellow (not red anymore)
+MinimumGreenPercent = 50 --export At which percent level do you want bars to be drawn in green (not yellow anymore)
+searchString = "Pure " --export Your identifier for Pure Storage Containers (e.g. "Pure Aluminum"). Include the spaces if you change this!
+
+function processTick()
 
     elementsIds = core.getElementIdList()
-    containers = {}
-    data = {}
+    outputData = {}
 
-    function newContainer(_id)
-        local container = 
-        {
-            id = _id;
-            name = core.getElementNameById(_id);
-            mass = core.getElementMassById(_id);
-            maxHp = core.getElementMaxHitPointsById(_id);
-        }
-        return container
+     substanceMass = {
+        Oxygen=1;
+        Hydrogen=0.07;
+        Aluminum=2.7;
+        Carbon=2.27;
+        Silicon=2.33;
+        Iron=7.85;
+        Calcium=1.55;
+        Chromium=7.19;
+        Copper=8.96;
+        Sodium=0.97;
+        Lithium=0.53;
+        Nickel=8.91;
+        Silver=10.49;
+        Sulfur=1.82;
+        Cobalt=8.9;
+        Fluorine=1.7;
+        Gold=19.3;
+        Scandium=2.98;
+        Manganese=7.21;
+        Niobium=8.57;
+        Titanium=4.51;
+        Vanadium=6;
+    }
+
+    function processSubstanceContainer(_id)
+        local ContainerName = core.getElementNameById(_id)
+        local ContainerTotalMass = core.getElementMassById(_id)
+        local ContainerMaxHP = core.getElementMaxHitPointsById(_id)
+        SubstanceName=string.gsub(ContainerName, searchString, "")
+
+        if SubstanceName~="" then
+            SubstanceSingleMass=substanceMass[SubstanceName]
+            if SubstanceSingleMass~=nil then
+                if ContainerMaxHP > 49 and ContainerMaxHP <=123 then
+                    ContainerSelfMass = 0
+                    CapacityForSubstance = DefaultHubVolume
+                elseif ContainerMaxHP > 123 and ContainerMaxHP <= 998 then
+                    ContainerSelfMass = 229.09
+                    CapacityForSubstance = (1000+(1000*(PlayerContainerProficiency/100)))
+                elseif ContainerMaxHP > 998 and ContainerMaxHP <= 7996 then
+                    ContainerSelfMass = 1280
+                    CapacityForSubstance = (8000+(8000*(PlayerContainerProficiency/100)))
+                elseif ContainerMaxHP > 7996 and ContainerMaxHP <= 17315 then
+                    ContainerSelfMass = 7420
+                    CapacityForSubstance = (64000+(64000*(PlayerContainerProficiency/100)))
+                elseif ContainerMaxHP > 17315 then
+                    ContainerSelfMass = 14840
+                    CapacityForSubstance = (128000+(128000*(PlayerContainerProficiency/100)))
+                end
+
+                local ContentMass=ContainerTotalMass-ContainerSelfMass
+                local OptimizedContentMass = ContentMass+ContentMass*(PlayerContainerOptimization/100)
+                local ContentAmount = round(math.floor(OptimizedContentMass/SubstanceSingleMass),1)
+
+                if outputData[SubstanceName]~=nil then
+                    outputData[SubstanceName] = {
+                        name = SubstanceName;
+                        amount = outputData[SubstanceName]["amount"]+ContentAmount;
+                        capacity = outputData[SubstanceName]["capacity"]+CapacityForSubstance;
+                    }
+                else
+                    local entry = {
+                        name = SubstanceName;
+                        amount = ContentAmount;
+                        capacity = CapacityForSubstance;
+                    }
+                    outputData[SubstanceName]=entry
+                end
+            end
+        end
     end
-
 
     for i = 1, #elementsIds do
-        if string.match(core.getElementTypeById(elementsIds[i]), "ontainer") and string.match(core.getElementNameById(elementsIds[i]),"Pure") then
-            table.insert(containers, newContainer(elementsIds[i]))
+        if string.match(core.getElementTypeById(elementsIds[i]), "ontainer") and string.match(core.getElementNameById(elementsIds[i]), searchString) then
+            processSubstanceContainer(elementsIds[i])
         end
-    end
-
-    for i = 1, #containers do
-        table.insert(data, {Container = containers[i].name, ContainerMass = containers[i].mass, maxHp = containers[i].maxHp})
-    end
-
-    function round(number,decimals)
-        local power = 10^decimals
-        return math.floor((number/1000) * power) / power
-    end 
-
-    function ContainerMaxVol(hp)
-        if hp > 49 and hp <=123 then vol = hub
-        elseif hp > 123 and hp <= 998 then vol = (1000+(1000*(containerProficiency/100)))
-        elseif hp > 998 and hp <= 7996 then vol = (8000+(8000*(containerProficiency/100)))
-        elseif hp > 7996 and hp <= 17315 then vol = (64000+(64000*(containerProficiency/100)))
-        elseif hp > 17315 then vol = (128000+(128000*(containerProficiency/100)))
-        end
-        return vol
-    end
-
-    function ContainerSelfMass(hp)
-        if hp > 49 and hp <=123 then sm = 0
-        elseif hp > 123 and hp <= 998 then sm = 229.09
-        elseif hp > 998 and hp <= 7996 then sm = 1280
-        elseif hp > 7996 and hp <= 17315 then sm = 7420
-        elseif hp > 17315 then sm = 14840
-        end
-        return sm
-    end
-
-    function OptimizedContainerMass(mass)
-        oMass = (mass+(mass*(containerOptimization/100)))
-        return oMass
-    end
-
-    function Status(percent)
-        if percent <= 0 then return "<th style=\"color: red;\">EMPTY</th>"
-        elseif percent > 0 and percent <=25 then return "<th style=\"color: red;\">LOW</th>"
-        elseif percent > 25 and percent <= 50 then return "<th style=\"color: orange;\">LOW</th>"
-        elseif percent > 50 and percent <= 99 then return "<th style=\"color: green;\">GOOD</th>"
-        else return "<th style=\"color: green;\">FULL</th>"
-        end 
-    end
-
-    function hoStatus(percent)
-        if percent <= 10 then return "<th style=\"color: orange;\">LOW</th>"
-        elseif percent > 10 and percent < 70 then return "<th style=\"color: green;\">GOOD</th>"
-        else return "<th style=\"color: red;\">PLEASE EMPTY</th>"
-        end 
     end
 
     function BarGraph(percent)
         if percent <= 0 then barcolour = "red"
-        elseif percent > 0 and percent <=25 then barcolour = "red"
-        elseif percent > 25 and percent <= 50 then barcolour = "orange"
-        elseif percent > 50 and percent <= 99 then  barcolour = "green"
+        elseif percent > 0 and percent <= MinimumYellowPercent then barcolour = "red"
+        elseif percent > MinimumYellowPercent and percent <= MinimumGreenPercent then barcolour = "orange"
+        elseif percent > MinimumGreenPercent then  barcolour = "green"
         else  barcolour = "green"
         end 
-        return "<td class=\"bar\" > <svg ><rect x=\"0\" y=\"5\" height=\"30\" width=\"140\" stroke=\"white\" stroke-width=\"1\"  rx=\"4\" /><rect x=\"0\" y=\"5\" height=\"30\" width=\"" .. percent * 1.4 .. "\"  fill=\"" .. barcolour .. "\" opacity=\"0.8\" rx=\"2\"/><text x=\"5\" y=\"30\" fill=\"white\" text-align=\"center\" margin-left=\"5\">" .. percent .. "%</text> </svg></td>"        
+        return "<td class=\"bar\" valign=top>"..
+                    "<svg>"..
+                        "<rect x=\"0\" y=\"3\" rx=\"6\" ry=\"6\" height=\"20\" width=\"122\" stroke=\"white\" stroke-width=\"1\" rx=\"0\" />"..
+                        "<rect x=\"1\" y=\"4\" rx=\"4\" ry=\"4\" height=\"18\" width=\"" .. (120/100*percent) .. "\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0\"/>"..
+                    "</svg>"..
+                "</td>"
     end
 
-    hub = 166400 --export: This is the total volume of your hub, at present, all hubs need to be the same
-    containerProficiency = 30 --export: This is the % voume increase of your Container Proficiency talent
-    containerOptimization = 0 --export: This is the % mass decrease of your Container Optimization talent
-    local Error = "<th style=\"color: red;\">ERROR</th>"
+    function AddHTMLEntry(_id1, _id2)
+        local id1amount = 0
+        local id2amount = 0
+        local id1percent = 0
+        local id2percent = 0
+        if outputData[_id1]~=nil then 
+            id1amount = outputData[_id1]["amount"]
+            id1percent = (outputData[_id1]["amount"]*1000)/outputData[_id1]["capacity"]*100
 
---T1 Stuff
-
-    -- PureAluminum Variables 
-    local pureAluminumCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container,"Alumin") then
-            if pureAluminumCounter >= 1 then
-                local weight = 2.70
-                massPureAluminum = massPureAluminum + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureAluminum = maxVolPureAluminum + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureAluminum = math.ceil(((math.ceil((massPureAluminum*1000) - 0.5)/(maxVolPureAluminum*1000))*100))
-                statusPureAluminum = Status(percentPureAluminum)
-            else
-                local weight = 2.70
-                massPureAluminum = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureAluminum = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureAluminum = math.ceil(((math.ceil((massPureAluminum*1000) - 0.5)/(maxVolPureAluminum*1000))*100))
-                statusPureAluminum = Status(percentPureAluminum)
-                pureAluminumCounter = pureAluminumCounter + 1
-            end
         end
-    end
-    if massPureAluminum == nil then
-        massPureAluminum = 0
-        percentPureAluminum = 0
-        statusPureAluminum = Error
-        maxVolPureAluminum = 0
-    end
-
-    -- PureCarbon Variables
-    local pureCarbonCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container,"Carbon") then
-            if pureCarbonCounter >= 1 then
-                local weight = 2.27
-                massPureCarbon = massPureCarbon + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureCarbon = maxVolPureCarbon + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureCarbon = math.ceil(((math.ceil((massPureCarbon*1000) - 0.5)/(maxVolPureCarbon*1000))*100))
-                statusPureCarbon = Status(percentPureCarbon)
-            else
-                local weight = 2.27
-                massPureCarbon = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureCarbon = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureCarbon = math.ceil(((math.ceil((massPureCarbon*1000) - 0.5)/(maxVolPureCarbon*1000))*100))
-                statusPureCarbon = Status(percentPureCarbon)
-                pureCarbonCounter = pureCarbonCounter + 1
-            end
+        if outputData[_id2]~=nil then
+            id2amount = outputData[_id2]["amount"]
+            id2percent = (outputData[_id2]["amount"]*1000)/outputData[_id2]["capacity"]*100
         end
-    end
-    if massPureCarbon == nil then
-        massPureCarbon = 0
-        percentPureCarbon = 0
-        statusPureCarbon = Error
-        maxVolPureCarbon = 0
-    end
-
-    -- PureIron Variables
-    local pureIronCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container,"Iron") then
-            if pureIronCounter >= 1 then
-                local weight = 7.85
-                massPureIron = massPureIron + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureIron = maxVolPureIron + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureIron = math.ceil(((math.ceil((massPureIron*1000) - 0.5)/(maxVolPureIron*1000))*100))
-                statusPureIron = Status(percentPureIron)
-            else
-                local weight = 7.85
-                massPureIron = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureIron = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureIron = math.ceil(((math.ceil((massPureIron*1000) - 0.5)/(maxVolPureIron*1000))*100))
-                statusPureIron = Status(percentPureIron)
-                pureIronCounter = pureIronCounter + 1
-            end
-        end
-    end
-    if massPureIron == nil then
-        massPureIron = 0
-        percentPureIron = 0
-        statusPureIron = Error
-        maxVolPureIron = 0
-    end
-
-    -- PureSilicon Variables
-    local pureSiliconCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Silicon") then
-            if pureSiliconCounter >= 1 then
-                local weight = 2.33
-                massPureSilicon = massPureSilicon + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureSilicon = maxVolPureSilicon + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureSilicon = math.ceil(((math.ceil((massPureSilicon*1000) - 0.5)/(maxVolPureSilicon*1000))*100))
-                statusPureSilicon = Status(percentPureSilicon)
-            else
-                local weight = 2.33
-                massPureSilicon = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureSilicon = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureSilicon = math.ceil(((math.ceil((massPureSilicon*1000) - 0.5)/(maxVolPureSilicon*1000))*100))
-                statusPureSilicon = Status(percentPureSilicon)
-                pureSiliconCounter = pureSiliconCounter +1
-            end
-        end
-    end
-    if massPureSilicon == nil then
-        massPureSilicon = 0
-        percentPureSilicon = 0
-        statusPureSilicon = Error
-        maxVolPureSilicon = 0
-    end
-
-    -- PureOxygen Variables 
-    local pureOxygenCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Oxygen") then
-            if pureOxygenCounter >= 1 then
-                local weight = 1
-                massPureOxygen = massPureOxygen + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureOxygen = maxVolPureOxygen + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureOxygen = math.ceil(((math.ceil((massPureOxygen*1000) - 0.5)/(maxVolPureOxygen*1000))*100))
-                statusPureOxygen = hoStatus(percentPureOxygen)
-            else
-                local weight = 1
-                massPureOxygen = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureOxygen = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureOxygen = math.ceil(((math.ceil((massPureOxygen*1000) - 0.5)/(maxVolPureOxygen*1000))*100))
-                statusPureOxygen = hoStatus(percentPureOxygen)
-                pureOxygenCounter = pureOxygenCounter + 1
-            end
-        end
-    end
-    if massPureOxygen == nil then
-        massPureOxygen = 0
-        percentPureOxygen = 0
-        statusPureOxygen = Error
-        maxVolPureOxygen = 0
-    end
-
-    -- PureHydrogen Variables 
-    local pureHydrogenCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Hydrogen") then
-            if pureHydrogenCounter >= 1 then
-                local weight = 0.07
-                massPureHydrogen = massPureHydrogen + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureHydrogen = maxVolPureHydrogen + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureHydrogen = math.ceil(((math.ceil((massPureHydrogen*1000) - 0.5)/(maxVolPureHydrogen*1000))*100))
-                statusPureHydrogen = hoStatus(percentPureHydrogen)
-            else
-                local weight = 0.07
-                massPureHydrogen = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureHydrogen = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureHydrogen = math.ceil(((math.ceil((massPureHydrogen*1000) - 0.5)/(maxVolPureHydrogen*1000))*100))
-                statusPureHydrogen = hoStatus(percentPureHydrogen)
-                pureHydrogenCounter = pureHydrogenCounter + 1
-            end
-        end
-    end
-    if massPureHydrogen == nil then
-        massPureHydrogen = 0
-        percentPureHydrogen = 0
-        statusPureHydrogen = Error
-        maxVolPureHydrogen = 0
-    end
-
---T2 Stuff
-
-    -- PureCalcium Variables 
-    local pureCalciumCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Calcium") then
-            if pureCalciumCounter >= 1 then
-                local weight = 1.55
-                massPureCalcium = massPureCalcium + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureCalcium = maxVolPureCalcium + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureCalcium = math.ceil(((math.ceil((massPureCalcium*1000) - 0.5)/(maxVolPureCalcium*1000))*100))
-                statusPureCalcium = Status(percentPureCalcium)
-            else
-                local weight = 1.55
-                massPureCalcium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureCalcium = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureCalcium = math.ceil(((math.ceil((massPureCalcium*1000) - 0.5)/(maxVolPureCalcium*1000))*100))
-                statusPureCalcium = Status(percentPureCalcium)
-                pureCalciumCounter = pureCalciumCounter + 1
-            end
-        end
-    end
-    if massPureCalcium == nil then
-        massPureCalcium = 0
-        percentPureCalcium = 0
-        statusPureCalcium = Error
-        maxVolPureCalcium = 0
-    end
-
-    -- PureChromium Variables 
-    local pureChromiumCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Chromium") then
-            if pureChromiumCounter >= 1 then
-                local weight = 7.19
-                massPureChromium = massPureChromium + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureChromium = maxVolPureChromium + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureChromium = math.ceil(((math.ceil((massPureChromium*1000) - 0.5)/(maxVolPureChromium*1000))*100))
-                statusPureChromium = Status(percentPureChromium)
-            else
-                local weight = 7.19
-                massPureChromium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureChromium = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureChromium = math.ceil(((math.ceil((massPureChromium*1000) - 0.5)/(maxVolPureChromium*1000))*100))
-                statusPureChromium = Status(percentPureChromium)
-                pureChromiumCounter = pureChromiumCounter +1
-            end
-        end
-    end
-    if massPureChromium == nil then
-        massPureChromium = 0
-        percentPureChromium = 0
-        statusPureChromium = Error
-        maxVolPureChromium = 0
-    end
-
-    -- PureCopper Variables 
-    local pureCopperCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Copper") then
-            if pureCopperCounter >= 1 then
-                local weight = 8.96
-                massPureCopper = massPureCopper + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureCopper = maxVolPureCopper + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureCopper = math.ceil(((math.ceil((massPureCopper*1000) - 0.5)/(maxVolPureCopper*1000))*100))
-                statusPureCopper = Status(percentPureCopper)
-            else
-                local weight = 8.96
-                massPureCopper = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureCopper = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureCopper = math.ceil(((math.ceil((massPureCopper*1000) - 0.5)/(maxVolPureCopper*1000))*100))
-                statusPureCopper = Status(percentPureCopper)
-                pureCopperCounter = pureCopperCounter + 1
-            end
-        end
-    end
-    if massPureCopper == nil then
-        massPureCopper = 0
-        percentPureCopper = 0
-        statusPureCopper = Error
-        maxVolPureCopper = 0
-    end
-
-    -- PureSodium Variables 
-    local pureSodiumCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Sodium") then
-            if pureSodiumCounter >= 1 then
-                local weight = 0.97
-                massPureSodium = massPureSodium + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureSodium = maxVolPureSodium + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureSodium = math.ceil(((math.ceil((massPureSodium*1000) - 0.5)/(maxVolPureSodium*1000))*100))
-                statusPureSodium = Status(percentPureSodium)
-            else
-                local weight = 0.97
-                massPureSodium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureSodium = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureSodium = math.ceil(((math.ceil((massPureSodium*1000) - 0.5)/(maxVolPureSodium*1000))*100))
-                statusPureSodium = Status(percentPureSodium)
-                pureSodiumCounter = pureSodiumCounter + 1
-            end
-        end
-    end
-    if massPureSodium == nil then
-        massPureSodium = 0
-        percentPureSodium = 0
-        statusPureSodium = Error
-        maxVolPureSodium = 0
-    end
-
---T3 Stuff
-
-    -- PureLithium Variables 
-    local pureLithiumCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Lithium") then
-            if pureLithiumCounter >= 1 then
-                local weight = 0.53
-                massPureLithium = massPureLithium + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureLithium = maxVolPureLithium + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureLithium = math.ceil(((math.ceil((massPureLithium*1000) - 0.5)/(maxVolPureLithium*1000))*100))
-                statusPureLithium = Status(percentPureLithium)
-            else
-                local weight = 0.53
-                massPureLithium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureLithium = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureLithium = math.ceil(((math.ceil((massPureLithium*1000) - 0.5)/(maxVolPureLithium*1000))*100))
-                statusPureLithium = Status(percentPureLithium)
-                pureLithiumCounter = pureLithiumCounter + 1
-            end
-        end
-    end
-    if massPureLithium == nil then
-        massPureLithium = 0
-        percentPureLithium = 0
-        statusPureLithium = Error
-        maxVolPureLithium = 0
-    end
-
-    -- PureNickel Variables
-    local pureNickelCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Nickel") then
-            if pureNickelCounter >= 1 then
-                local weight = 8.91
-                massPureNickel = massPureNickel + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureNickel = maxVolPureNickel + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureNickel = math.ceil(((math.ceil((massPureNickel*1000) - 0.5)/(maxVolPureNickel*1000))*100))
-                statusPureNickel = Status(percentPureNickel)
-            else
-                local weight = 8.91
-                massPureNickel = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureNickel = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureNickel = math.ceil(((math.ceil((massPureNickel*1000) - 0.5)/(maxVolPureNickel*1000))*100))
-                statusPureNickel = Status(percentPureNickel)
-                pureNickelCounter = pureNickelCounter + 1
-            end
-        end
-    end
-    if massPureNickel == nil then
-        massPureNickel = 0
-        percentPureNickel = 0
-        statusPureNickel = Error
-        maxVolPureNickel = 0
-    end
-
-    -- PureSilver Variables
-    local pureSilverCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Silver") then
-            if pureSilverCounter >= 1 then
-                local weight = 10.49
-                massPureSilver = massPureSilver + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureSilver = maxVolPureSilver + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureSilver = math.ceil(((math.ceil((massPureSilver*1000) - 0.5)/(maxVolPureSilver*1000))*100))
-                statusPureSilver = Status(percentPureSilver)
-            else
-                local weight = 10.49
-                massPureSilver = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureSilver = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureSilver = math.ceil(((math.ceil((massPureSilver*1000) - 0.5)/(maxVolPureSilver*1000))*100))
-                statusPureSilver = Status(percentPureSilver)
-                pureSilverCounter = pureSilverCounter + 1
-            end
-        end
-    end
-    if massPureSilver == nil then
-        massPureSilver = 0
-        percentPureSilver = 0
-        statusPureSilver = Error
-        maxVolPureSilver = 0
-    end
-
-    -- Pure Sulfur Variables
-    local pureSulfurCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Sulfur") then
-            if pureSulfurCounter >= 1 then
-                local weight = 1.82
-                massPureSulfur = massPureSulfur + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureSulfur = maxVolPureSulfur + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureSulfur = math.ceil(((math.ceil((massPureSulfur*1000) - 0.5)/(maxVolPureSulfur*1000))*100))
-                statusPureSulfur = Status(percentPureSulfur)
-            else
-                local weight = 1.82
-                massPureSulfur = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureSulfur = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureSulfur = math.ceil(((math.ceil((massPureSulfur*1000) - 0.5)/(maxVolPureSulfur*1000))*100))
-                statusPureSulfur = Status(percentPureSulfur)
-                pureSulfurCounter = pureSulfurCounter +1
-            end
-        end
-    end
-    if massPureSulfur == nil then
-        massPureSulfur = 0
-        percentPureSulfur = 0
-        statusPureSulfur = Error
-        maxVolPureSulfur = 0
-    end
-
---T4 Stuff
-
-    -- PureCobalt Variables 
-    local pureCobaltCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Pure Cobalt") then
-            if pureCobaltCounter >= 1 then
-                local weight = 8.90
-                massPureCobalt = massPureCobalt + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureCobalt = maxVolPureCobalt + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureCobalt = math.ceil(((math.ceil((massPureCobalt*1000) - 0.5)/(maxVolPureCobalt*1000))*100))
-                statusPureCobalt = Status(percentPureCobalt)
-            else
-                local weight = 8.90
-                massPureCobalt = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureCobalt = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureCobalt = math.ceil(((math.ceil((massPureCobalt*1000) - 0.5)/(maxVolPureCobalt*1000))*100))
-                statusPureCobalt = Status(percentPureCobalt)
-                pureCobaltCounter = pureCobaltCounter + 1
-            end
-        end
-    end
-    if massPureCobalt == nil then
-        massPureCobalt = 0
-        percentPureCobalt = 0
-        statusPureCobalt = Error
-        maxVolPureCobalt = 0
-    end
-
-    -- PureFluorine Variables
-    local pureFluorineCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Fluorine") then
-            if pureFluorineCounter >= 1 then
-                local weight = 1.70
-                massPureFluorine = massPureFluorine + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureFluorine = maxVolPureFluorine + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureFluorine = math.ceil(((math.ceil((massPureFluorine*1000) - 0.5)/(maxVolPureFluorine*1000))*100))
-                statusPureFluorine = Status(percentPureFluorine)
-            else
-                local weight = 1.70
-                massPureFluorine = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureFluorine = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureFluorine = math.ceil(((math.ceil((massPureFluorine*1000) - 0.5)/(maxVolPureFluorine*1000))*100))
-                statusPureFluorine = Status(percentPureFluorine)
-                pureFluorineCounter = pureFluorineCounter + 1
-            end
-        end
-    end
-    if massPureFluorine == nil then
-        massPureFluorine = 0
-        percentPureFluorine = 0
-        statusPureFluorine = Error
-        maxVolPureFluorine = 0
-    end
-
-    -- PureGold Variables
-    local pureGoldCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Pure Gold") then
-            if pureGoldCounter >= 1 then
-                local weight = 19.30
-                massPureGold = massPureGold + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureGold = maxVolPureGold + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureGold = math.ceil(((math.ceil((massPureGold*1000) - 0.5)/(maxVolPureGold*1000))*100))
-                statusPureGold = Status(percentPureGold)
-            else
-                local weight = 19.30
-                massPureGold = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureGold = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureGold = math.ceil(((math.ceil((massPureGold*1000) - 0.5)/(maxVolPureGold*1000))*100))
-                statusPureGold = Status(percentPureGold)
-                pureGoldCounter = pureGoldCounter + 1
-            end
-        end
-    end
-    if massPureGold == nil then
-        massPureGold = 0
-        percentPureGold = 0
-        statusPureGold = Error
-        maxVolPureGold = 0
-    end
-
-    -- Pure Scandium Variables
-    local pureScandiumCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Scandium") then
-            if pureScandiumCounter >= 1 then
-                local weight = 2.98
-                massPureScandium = massPureScandium + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureScandium = maxVolPureScandium + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureScandium = math.ceil(((math.ceil((massPureScandium*1000) - 0.5)/(maxVolPureScandium*1000))*100))
-                statusPureScandium = Status(percentPureScandium)
-            else
-                local weight = 2.98
-                massPureScandium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureScandium = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureScandium = math.ceil(((math.ceil((massPureScandium*1000) - 0.5)/(maxVolPureScandium*1000))*100))
-                statusPureScandium = Status(percentPureScandium)
-                pureScandiumCounter = pureScandiumCounter + 1
-            end
-        end
-    end
-    if massPureScandium == nil then
-        massPureScandium = 0
-        percentPureScandium = 0
-        statusPureScandium = Error
-        maxVolPureScandium = 0
-    end
-
---T5 Stuff
-
-    -- PureManganese Variables 
-    local pureManganeseCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Manganese") then
-            if pureManganeseCounter >= 1 then
-                local weight = 7.21
-                massPureManganese = massPureManganese + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureManganese = maxVolPureManganese + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureManganese = math.ceil(((math.ceil((massManganeseCobalt*1000) - 0.5)/(maxVolPureManganese*1000))*100))
-                statusPureManganese = Status(percentPureManganese)
-            else
-                local weight = 7.21
-                massPureManganese = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureManganese = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureManganese = math.ceil(((math.ceil((massManganeseCobalt*1000) - 0.5)/(maxVolPureManganese*1000))*100))
-                statusPureManganese = Status(percentPureManganese)
-                pureManganeseCounter = pureManganeseCounter + 1
-            end
-        end
-    end
-    if massPureManganese == nil then
-        massPureManganese = 0
-        percentPureManganese = 0
-        statusPureManganese = Error
-        maxVolPureManganese = 0
-    end
-
-    -- PureNiobium Variables
-    local pureNiobiumCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Niobium") then
-            if pureNiobiumCounter >= 1 then
-                local weight = 8.57
-                massPureNiobium = massPureNiobium + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureNiobium = maxVolPureNiobium + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureNiobium = math.ceil(((math.ceil((massPureNiobium*1000) - 0.5)/(maxVolPureNiobium*1000))*100))
-                statusPureNiobium = Status(percentPureNiobium)
-            else
-                local weight = 8.57
-                massPureNiobium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureNiobium = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureNiobium = math.ceil(((math.ceil((massPureNiobium*1000) - 0.5)/(maxVolPureNiobium*1000))*100))
-                statusPureNiobium = Status(percentPureNiobium)
-                pureNiobiumCounter = pureNiobiumCounter + 1
-            end
-        end
-    end
-    if massPureNiobium == nil then
-        massPureNiobium = 0
-        percentPureNiobium = 0
-        statusPureNiobium = Error
-        maxVolPureNiobium = 0
-    end
-
-    -- PureTitanium Variables
-    local pureTitaniumCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Titanium") then
-            if pureTitaniumCounter >= 1 then
-                local weight = 4.51
-                massPureTitanium = massPureTitanium + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureTitanium = maxVolPureTitanium + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureTitanium = math.ceil(((math.ceil((massPureTitanium*1000) - 0.5)/(maxVolPureTitanium*1000))*100))
-                statusPureTitanium = Status(percentPureTitanium)
-            else
-                local weight = 4.51
-                massPureTitanium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureTitanium = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureTitanium = math.ceil(((math.ceil((massPureTitanium*1000) - 0.5)/(maxVolPureTitanium*1000))*100))
-                statusPureTitanium = Status(percentPureTitanium)
-                pureTitaniumCounter = pureTitaniumCounter + 1
-            end
-        end
-    end
-    if massPureTitanium == nil then
-        massPureTitanium = 0
-        percentPureTitanium = 0
-        statusPureTitanium = Error
-        maxVolPureTitanium = 0
-    end
-
-    -- Pure Vanadium Variables
-    local pureVanadiumCounter = 0
-    for k, v in pairs(data) do
-        if string.match(data[k].Container, "Vanadium") then
-            if pureVanadiumCounter >= 1 then
-                local weight = 6.0
-                massPureVanadium = massPureVanadium + round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureVandium = maxVolPureVandium + (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureVanadium = math.ceil(((math.ceil((massPureVanadium*1000) - 0.5)/(maxVolPureVandium*1000))*100))
-                statusPureVanadium = Status(percentPureVanadium)
-            else
-                local weight = 6.0
-                massPureVanadium = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
-                maxVolPureVandium = (ContainerMaxVol(data[k].maxHp))/1000
-                percentPureVanadium = math.ceil(((math.ceil((massPureVanadium*1000) - 0.5)/(maxVolPureVandium*1000))*100))
-                statusPureVanadium = Status(percentPureVanadium)
-                pureVanadiumCounter = pureVanadiumCounter + 1
-            end
-        end
-    end
-    if massPureVanadium == nil then
-        massPureVanadium = 0
-        percentPureVanadium = 0
-        statusPureVanadium = Error
-        maxVolPureVandium = 0
-    end
-
-
-    d1 = [[
-            <head>
-                <style>
-                    .bar{
-                        text-align: left;
-                        vertical-align: top;
-                        border-radius: 0 3px 3px 0;
-                        }
-                    }
-                </style>
-            </head>
-            <div class="bootstrap">
-            <h1 style="font-size: 6em;">]]
-    t1 = [[</h1>
-        <table style="
-            text-transform: capitalize;
-            font-size: 3em;
-            table-layout: auto;
-            width: 100%;
-        ">
-        </br>
-        <tr style="
-            width:100%;
-            background-color: blue;
-            color: white;
-        ">
-            <th>Type</th>
-            <th>Qty</th>
-            <th>MaxQty</th>
-            <th>Levels</th>
-            <th>Status</th>
-        </tr>
-        ]]
-    c1 = [[
-            </table>
-            </div>
-         ]]
-
-    if displayT1 then
-        html = d1..[[T1 Basic Status]]..t1..
+        resHTML =
             [[<tr>
-                <th>Aluminium</th>
-                <th>]]..massPureAluminum..[[KL]]..[[</th>
-                <th>]]..maxVolPureAluminum ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureAluminum)..[[%
-                ]]..statusPureAluminum..[[
-            </tr>
-            <tr>
-                <th>Carbon</th>
-                <th>]]..massPureCarbon..[[KL]]..[[</th>
-                <th>]]..maxVolPureCarbon ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureCarbon)..[[%
-                ]]..statusPureCarbon..[[
-            </tr>
-            <tr>
-                <th>Iron</th>
-                <th>]]..massPureIron..[[KL]]..[[</th>
-                <th>]]..maxVolPureIron ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureIron)..[[%
-                ]]..statusPureIron..[[
-            </tr>
-            <tr>
-                <th>Silicon</th>
-                <th>]]..massPureSilicon..[[KL]]..[[</th>
-                <th>]]..maxVolPureSilicon ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureSilicon)..[[%
-                ]]..statusPureSilicon..[[
-            </tr>
-            <tr>
-                <th>Hydrogen</th>
-                <th>]]..massPureHydrogen..[[KL]]..[[</th>
-                <th>]]..maxVolPureHydrogen ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureHydrogen)..[[%
-                ]]..statusPureHydrogen..[[
-            </tr>
-            <tr>
-                <th>Oxygen</th>
-                <th>]]..massPureOxygen..[[KL]]..[[</th>
-                <th>]]..maxVolPureOxygen ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureOxygen)..[[%
-                ]]..statusPureOxygen..
-                c1
-        displayT1.setHTML(html)
+                <th align=right>]].._id1..[[:&nbsp;</th>
+                <th align=right>]]..id1amount..[[&nbsp;</th>
+                <th align=right>]]..string.format("%02.1f", id1percent)..[[%&nbsp;</th>
+                ]]..BarGraph(id1percent)..[[
+                <th style="background-color: blue;">&nbsp;</th>
+                <th align=right>]].._id2..[[:&nbsp;</th>
+                <th align=right>]]..id2amount..[[&nbsp;</th>
+                <th align=right>]]..string.format("%02.1f", id2percent)..[[%&nbsp;</th>
+                ]]..BarGraph(id2percent)..[[
+            </tr>]]
+        return resHTML
     end
 
-    if displayT2 then
-        html = d1..[[T2 Uncommon Status]]..t1..
-            [[<tr>
-                <th>Sodium</th>
-                <th>]]..massPureSodium..[[KL]]..[[</th>
-                <th>]]..maxVolPureSodium ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureSodium)..[[%
-                ]]..statusPureSodium..[[
-            </tr>
-            <tr>
-                <th>Copper</th>
-                <th>]]..massPureCopper..[[KL]]..[[</th>
-                <th>]]..maxVolPureCopper ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureCopper)..[[%
-                ]]..statusPureCopper..[[
-            </tr>
-            </tr>
-                <th>Calcium</th>
-                <th>]]..massPureCalcium..[[KL]]..[[</th>
-                <th>]]..maxVolPureCalcium ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureCalcium)..[[%
-                ]]..statusPureCalcium..[[
-            </tr>
-            <th>Chromium</th>
-                <th>]]..massPureChromium..[[KL]]..[[</th>
-                <th>]]..maxVolPureChromium ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureChromium)..[[%
-                ]]..statusPureChromium..
-                c1
-        displayT2.setHTML(html)
-    end
+    htmlHeader = [[<head><style>.bar { text-align: left; vertical-align: top; border-radius: 0 0em 0em 0; }</style></head>]]
+    d1 = [[<div class="bootstrap" style="text-align:left; vertical-align: text-top;">]]
+    d2 = [[<span style="font-family: cursive; font-size: 2em;">&nbsp;]]
+    t1 = [[&nbsp;</span>
+        <table style="text-transform: capitalize;font-family: cursive;  font-size: 1.7em; table-layout: auto; width: 100%;">
+        <tr style="width:100%; background-color: blue; color: white;">]]
+    t2 = [[ <th style="width:16%; text-align:right;">Type</th>
+            <th style="width:10%; text-align:right;">KL</th>
+            <th style="width:9%;">&nbsp;</th>
+            <th style="width:15%;text-align:left;">Levels</th>
+            <th style="background-color: blue;">&nbsp;</th>
+            <th style="width:16%; text-align:right;">Type</th>
+            <th style="width:10%; text-align:right;">KL</th>
+            <th style="width:9%;">&nbsp;</th>
+            <th style="width:15%;text-align:left;">Levels</th>
+        </tr>]]
+    c1 = [[</table></div> ]]
 
-    if displayT3 then
-        html = d1..[[T3 Advanced Status]]..t1..
-            [[<tr>
-                <th>Lithium</th>
-                <th>]]..massPureLithium..[[KL]]..[[</th>
-                <th>]]..maxVolPureLithium ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureLithium)..[[%
-                ]]..statusPureLithium..[[
-            </tr>
-            <tr>
-                <th>Nickel</th>
-                <th>]]..massPureNickel..[[KL]]..[[</th>
-                <th>]]..maxVolPureNickel ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureNickel)..[[%
-                ]]..statusPureNickel..[[
-            </tr>
-            <tr>
-                <th>Sulfur</th>
-                <th>]]..massPureSulfur..[[KL]]..[[</th>
-                <th>]]..maxVolPureSulfur ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureSulfur)..[[%
-                ]]..statusPureSulfur..[[
-            </tr>
-            <tr>
-                <th>Silver</th>
-                <th>]]..massPureSilver..[[KL]]..[[</th>
-                <th>]]..maxVolPureSilver ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureSilver)..[[%
-                ]]..statusPureSilver..
-                c1
-        displayT3.setHTML(html)
-    end
+    if display1 then
+        html=htmlHeader
+        html=html..d1..d2.."Tier 1"..t1..t2
+        html=html..AddHTMLEntry("Aluminum", "Carbon")
+        html=html..AddHTMLEntry("Iron", "Silicon")
+        html=html..AddHTMLEntry("Hydrogen", "Oxygen")
 
-    if displayT4 then
-        html = d1..[[T4 Rare Status]]..t1..
-            [[<tr>
-                <th>Cobalt</th>
-                <th>]]..massPureCobalt..[[KL]]..[[</th>
-                <th>]]..maxVolPureCobalt ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureCobalt)..[[%
-                ]]..statusPureCobalt..[[
-            </tr>
-            <tr>
-                <th>Fluorine</th>
-                <th>]]..massPureFluorine..[[KL]]..[[</th>
-                <th>]]..maxVolPureFluorine ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureFluorine)..[[%
-                ]]..statusPureFluorine..[[
-            </tr>
-            <tr>
-                <th>Gold</th>
-                <th>]]..massPureGold..[[KL]]..[[</th>
-                <th>]]..maxVolPureGold ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureGold)..[[%
-                ]]..statusPureGold..[[
-            </tr>
-            <tr>
-                <th>Scandium</th>
-                <th>]]..massPureScandium..[[KL]]..[[</th>
-                <th>]]..maxVolPureScandium ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureScandium)..[[%
-                ]]..statusPureScandium..
-                c1
-        displayT4.setHTML(html)
-    end
+        html=html..t1..d2.."Tier 2"..t1..t2
+        html=html..AddHTMLEntry("Sodium", "Copper")
+        html=html..AddHTMLEntry("Calcium", "Chromium")
 
-    if displayT5 then
-        html = d1..[[T5 Exotic Status]]..t1..
-            [[<tr>
-                <th>Manganese</th>
-                <th>]]..massPureManganese..[[KL]]..[[</th>
-                <th>]]..maxVolPureManganese ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureManganese)..[[%
-                ]]..statusPureManganese..[[
-            </tr>
-            <tr>
-                <th>Niobium</th>
-                <th>]]..massPureNiobium..[[KL]]..[[</th>
-                <th>]]..maxVolPureNiobium ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureNiobium)..[[%
-                ]]..statusPureNiobium..[[
-            </tr>
-            <tr>
-                <th>Titanium</th>
-                <th>]]..massPureTitanium..[[KL]]..[[</th>
-                <th>]]..maxVolPureTitanium ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureTitanium)..[[%
-                ]]..statusPureTitanium..[[
-            </tr>
-            <tr>
-                <th>Vanadium</th>
-                <th>]]..massPureVanadium..[[KL]]..[[</th>
-                <th>]]..maxVolPureVandium ..[[KL]]..[[</th>
-                ]]..BarGraph(percentPureVanadium)..[[%
-                ]]..statusPureVanadium..
-                c1
-        displayT5.setHTML(html)
+        html=html..t1..d2.."Tier 3"..t1..t2
+        html=html..AddHTMLEntry("Lithium", "Nickel")
+        html=html..AddHTMLEntry("Sulfur", "Silver")
+
+        html=html..t1..d2.."Tier 4"..t1..t2
+        html=html..AddHTMLEntry("Cobalt", "Fluorine")
+        html=html..AddHTMLEntry("Gold", "Scandium")
+
+        html=html..t1..d2.."Tier 5"..t1..t2
+        html=html..AddHTMLEntry("Manganese", "Niobium")
+        html=html..AddHTMLEntry("Titanium", "Vanadium")
+        html=html..c1
+        display1.setHTML(html)
     end
 end
-unit.setTimer('updateTable', 1)
+
+processTick()
+unit.setTimer('updateTick', 5)
