@@ -122,8 +122,8 @@ function processTick()
         end 
         return "<td class=\"bar\" valign=top>"..
                     "<svg>"..
-                        "<rect x=\"0\" y=\"3\" rx=\"6\" ry=\"6\" height=\"20\" width=\"122\" stroke=\"white\" stroke-width=\"1\" rx=\"0\" />"..
-                        "<rect x=\"1\" y=\"4\" rx=\"4\" ry=\"4\" height=\"18\" width=\"" .. (120/100*percent) .. "\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0\"/>"..
+                        "<rect x=\"0\" y=\"4\" rx=\"6\" ry=\"6\" height=\"20\" width=\"122\" stroke=\"white\" stroke-width=\"1\" rx=\"0\" />"..
+                        "<rect x=\"1\" y=\"5\" rx=\"4\" ry=\"4\" height=\"18\" width=\"" .. (120/100*percent) .. "\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0\"/>"..
                     "</svg>"..
                 "</td>"        
     end
