@@ -411,7 +411,7 @@ function generateHtml()
                 massPureCopper = round(math.ceil((OptimizedContainerMass(data[k].ContainerMass) - ContainerSelfMass(data[k].maxHp)) / weight),1)
                 maxVolPureCopper = (ContainerMaxVol(data[k].maxHp))/1000
                 percentPureCopper = math.ceil(((math.ceil((massPureCopper*1000) - 0.5)/(maxVolPureCopper*1000))*100))
-                pureCopperCounter = pureCopperCounter * 1
+                pureCopperCounter = pureCopperCounter + 1
             end
         end
     end
