@@ -160,8 +160,8 @@ function processTick()
         end 
         return "<td class=\"bar\" valign=top>"..
                     "<svg>"..
-                        "<rect x=\"0vw\" y=\".4vw\" rx=\".6vw\" ry=\".6vw\" height=\"2vw\" width=\"12.2vw\" stroke=\"white\" stroke-width=\".1vw\" rx=\"0vw\" />"..
-                        "<rect x=\".1vw\" y=\".5vw\" rx=\".4vw\" ry=\".4vw\" height=\"1.8vw\" width=\"" .. (12/100*percent) .. "vw\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0vw\"/>"..
+                        "<rect x=\"0vw\" y=\".4vw\" rx=\"4\" ry=\"4\" height=\"2vw\" width=\"12.2vw\" stroke=\"white\" stroke-width=\".1vw\" rx=\"0vw\" />"..
+                        "<rect x=\".1vw\" y=\".5vw\" rx=\"4\" ry=\"4\" height=\"1.8vw\" width=\"" .. (12/100*percent) .. "vw\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0vw\"/>"..
                     "</svg>"..
                 "</td>"        
     end
@@ -199,15 +199,15 @@ function processTick()
     d1 = [[<div class="bootstrap" style="text-align:left; vertical-align: text-top;">]]
     d2 = [[<span style="text-transform: capitalize; font-size: 3em;">&nbsp;]]
     t1 = [[&nbsp;</span>
-        <table style="text-transform: capitalize; font-size: 2.5em; table-layout: auto; width: 100vw;">
+        <table style="text-transform: capitalize; font-size: 2.4em; table-layout: auto; width: 100vw;">
         <tr style="width:100vw; background-color: blue; color: white;">]]
     t2 = [[ <th style="width:18vw; text-align:right;">Type</th>
-            <th style="width:9vw; text-align:right;">KL</th>
+            <th style="width:8vw; text-align:right;">KL</th>
             <th style="width:9vw;">&nbsp;</th>
             <th style="width:15vw;text-align:left;">Levels</th>
             <th style="background-color: blue;">&nbsp;</th>
             <th style="width:18vw; text-align:right;">Type</th>
-            <th style="width:9vw; text-align:right;">KL</th>
+            <th style="width:8vw; text-align:right;">KL</th>
             <th style="width:9vw;">&nbsp;</th>
             <th style="width:15vw;text-align:left;">Levels</th>
         </tr>]]
