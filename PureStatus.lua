@@ -122,8 +122,8 @@ function processTick()
         end 
         return "<td class=\"bar\" valign=top>"..
                     "<svg>"..
-                        "<rect x=\"0\" y=\"4\" rx=\"6\" ry=\"6\" height=\"20\" width=\"122\" stroke=\"white\" stroke-width=\"1\" rx=\"0\" />"..
-                        "<rect x=\"1\" y=\"5\" rx=\"4\" ry=\"4\" height=\"18\" width=\"" .. (120/100*percent) .. "\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0\"/>"..
+                        "<rect x=\"0vw\" y=\".4vw\" rx=\".6vw\" ry=\".6vw\" height=\"2vw\" width=\"12.2vw\" stroke=\"white\" stroke-width=\".1vw\" rx=\"0vw\" />"..
+                        "<rect x=\".1vw\" y=\".5vw\" rx=\".4vw\" ry=\".4vw\" height=\"1.8vw\" width=\"" .. (12/100*percent) .. "vw\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0vw\"/>"..
                     "</svg>"..
                 "</td>"
     end
@@ -159,19 +159,19 @@ function processTick()
 
     htmlHeader = [[<head><style>.bar { text-align: left; vertical-align: top; border-radius: 0 0em 0em 0; }</style></head>]]
     d1 = [[<div class="bootstrap" style="text-align:left; vertical-align: text-top;">]]
-    d2 = [[<span style="font-family: cursive; font-size: 2em;">&nbsp;]]
+    d2 = [[<span style="text-transform: capitalize; font-size: 2.5em;">&nbsp;]]
     t1 = [[&nbsp;</span>
-        <table style="text-transform: capitalize;font-family: cursive;  font-size: 1.7em; table-layout: auto; width: 100%;">
-        <tr style="width:100%; background-color: blue; color: white;">]]
-    t2 = [[ <th style="width:16%; text-align:right;">Type</th>
-            <th style="width:10%; text-align:right;">KL</th>
-            <th style="width:9%;">&nbsp;</th>
-            <th style="width:15%;text-align:left;">Levels</th>
+        <table style="text-transform: capitalize;  font-size: 2em; table-layout: auto; width: 100vw;">
+        <tr style="width:100vw; background-color: blue; color: white;">]]
+    t2 = [[ <th style="width:16vw; text-align:right;">Type</th>
+            <th style="width:10vw; text-align:right;">KL</th>
+            <th style="width:9vw;">&nbsp;</th>
+            <th style="width:15vw;text-align:left;">Levels</th>
             <th style="background-color: blue;">&nbsp;</th>
-            <th style="width:16%; text-align:right;">Type</th>
-            <th style="width:10%; text-align:right;">KL</th>
-            <th style="width:9%;">&nbsp;</th>
-            <th style="width:15%;text-align:left;">Levels</th>
+            <th style="width:16vw; text-align:right;">Type</th>
+            <th style="width:10vw; text-align:right;">KL</th>
+            <th style="width:9vw;">&nbsp;</th>
+            <th style="width:15vw;text-align:left;">Levels</th>
         </tr>]]
     c1 = [[</table></div> ]]
 
