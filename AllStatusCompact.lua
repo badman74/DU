@@ -201,13 +201,13 @@ function processTick()
     t1 = [[&nbsp;</span>
         <table style="text-transform: capitalize; font-size: 2.5em; table-layout: auto; width: 100vw;">
         <tr style="width:100vw; background-color: blue; color: white;">]]
-    t2 = [[ <th style="width:16vw; text-align:right;">Type</th>
-            <th style="width:10vw; text-align:right;">KL</th>
+    t2 = [[ <th style="width:18vw; text-align:right;">Type</th>
+            <th style="width:9vw; text-align:right;">KL</th>
             <th style="width:9vw;">&nbsp;</th>
             <th style="width:15vw;text-align:left;">Levels</th>
             <th style="background-color: blue;">&nbsp;</th>
-            <th style="width:16vw; text-align:right;">Type</th>
-            <th style="width:10vw; text-align:right;">KL</th>
+            <th style="width:18vw; text-align:right;">Type</th>
+            <th style="width:9vw; text-align:right;">KL</th>
             <th style="width:9vw;">&nbsp;</th>
             <th style="width:15vw;text-align:left;">Levels</th>
         </tr>]]
