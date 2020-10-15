@@ -10,8 +10,7 @@
     5. Link 1 screen to your Programming Board, preferably S or larger, and name the slot "display1".
     6. Rename your pure storage boxes you want this script to observe. Pures must be named "Pure <purename>", e.g. "Pure Alumnium". Any wrongly named container will not be observed.You can rename the searchString under Advanced->Edit Lua Parameters, You MUST include spaces not in the actual substance name. You can have more than one container for a single substance, if you have e.g. three large containers for Aluminum, name all of them "Pure Aluminum". The script does not support multiple substances in one container.
     7. On your Programming Board choose Advanced->Edit Lua Parameters and enter your Container Proficiency Bonus in percent (0 to 50) and your Container Optimization Bonus in percent (0-25)
-    8. If you want to use hubs, please note that all hubs must have the same volume in order for the display to work correctly, and you must enter the total volume of a hub as "DefaultHubVolume" as in (7).
-    9. Activate the Programming Board.
+    8. Activate the Programming Board.
 ]]
 
 unit.hide()
@@ -24,7 +23,6 @@ end
 
 PlayerContainerProficiency = 30 --export Your Container Proficiency bonus in total percent (Skills->Mining and Inventory->Inventory Manager)
 PlayerContainerOptimization = 0 --export Your Container Optimization bonus in total percent (Skills->Mining and Inventory->Stock Control)
-DefaultHubVolume = 166400 --export The total volume of your hubs (note: all hubs must have same volume!)
 MinimumYellowPercent = 25 --export At which percent level do you want bars to be drawn in yellow (not red anymore)
 MinimumGreenPercent = 50 --export At which percent level do you want bars to be drawn in green (not yellow anymore)
 searchString = "Pure " --export Your identifier for Pure Storage Containers (e.g. "Pure Aluminum"). Include the spaces if you change this!
@@ -70,7 +68,7 @@ function processTick()
             if SubstanceSingleMass~=nil then
                 if ContainerMaxHP > 49 and ContainerMaxHP <=123 then
                     ContainerSelfMass = 0
-                    CapacityForSubstance = DefaultHubVolume
+                    CapacityForSubstance = 0
                 elseif ContainerMaxHP > 123 and ContainerMaxHP <= 998 then
                     ContainerSelfMass = 229.09
                     CapacityForSubstance = (1000+(1000*(PlayerContainerProficiency/100)))
