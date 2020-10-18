@@ -147,24 +147,19 @@ function processTick()
             id1percent = (outputData[_id1]["amount"])/outputData[_id1]["capacity"]*100
         end
 
-        if id1amount < 20 then
-            id1amount = 0
-            id1unit = "L"
-        elseif id1amount < 1000 then
-            id1unit = "L"
-        elseif id1amount >= 1000 then
-            id1amount = id1amount/1000
-            id1unit = "KL"
-        elseif id1amount >= 1000000 then
+        if id1amount >= 1000000 then
             id1amount = id1amount/1000000
             id1unit = "ML"
+        else
+            id1amount = id1amount/1000
+            id1unit = "KL"
         end
 
         resHTML =
             [[<tr>
                 <th align=right>]].._id1..[[:&nbsp;</th>
-                <th align=right>]]..string.format("%02.2f", id1amount)..[[&nbsp;</th>
-                <th align=right>]]..id1unit..[[&nbsp;</th>
+                <th align=right>]]..string.format("%02.1f", id1amount)..[[&nbsp;</th>
+                <th align=left>]]..id1unit..[[&nbsp;</th>
                 ]]..BarGraph(id1percent)..[[
             </tr>]]
         return resHTML
