@@ -97,7 +97,7 @@ function processTick()
 
                 local ContentMass=ContainerTotalMass-ContainerSelfMass
                 local OptimizedContentMass = ContentMass+ContentMass*(PlayerContainerOptimization/100)
-                local ContentAmount = round(math.floor(OptimizedContentMass/SubstanceSingleMass),1)
+                local ContentAmount = (OptimizedContentMass/SubstanceSingleMass)
 
                 if outputData[SubstanceName]~=nil then
                     outputData[SubstanceName] = {
@@ -132,10 +132,11 @@ function processTick()
         end 
         return "<td class=\"bar\" valign=top>"..
                     "<svg>"..
-                        "<rect x=\"0\" y=\"1\" rx=\"4\" ry=\"4\" height=\"5vw\" width=\"24.2vw\" stroke=\"white\" stroke-width=\"1\" rx=\"0\" />"..
-                        "<rect x=\"1\" y=\"2\" rx=\"3\" ry=\"3\" height=\"4.8vw\" width=\"" .. (24/100*percent) .. "vw\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0\"/>"..
+                        "<rect x=\"0\" y=\"1\" rx=\"6\" ry=\"6\" height=\"5vw\" width=\"24.2vw\" stroke=\"white\" stroke-width=\"1\" rx=\"0\" />"..
+                        "<rect x=\"1\" y=\"2\" rx=\"5\" ry=\"5\" height=\"4.8vw\" width=\"" .. (24/100*percent) .. "vw\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0\"/>"..
+                        "<text x=\"2\" y=\"45\" fill=\"white\" text-align=\"center\" margin-left=\"3\">" .. string.format("%02.1f", percent) .. "%</text>"..
                     "</svg>"..
-                "</td>"
+                "</td>"        
     end
 
     function AddHTMLEntry(_id1)
@@ -143,14 +144,27 @@ function processTick()
         local id1percent = 0
         if outputData[_id1]~=nil then 
             id1amount = outputData[_id1]["amount"]
-            id1percent = (outputData[_id1]["amount"]*1000)/outputData[_id1]["capacity"]*100
-
+            id1percent = (outputData[_id1]["amount"])/outputData[_id1]["capacity"]*100
         end
+
+        if id1amount < 20 then
+            id1amount = 0
+            id1unit = "L"
+        elseif id1amount < 1000 then
+            id1unit = "L"
+        elseif id1amount >= 1000 then
+            id1amount = id1amount/1000
+            id1unit = "KL"
+        elseif id1amount >= 1000000 then
+            id1amount = id1amount/1000000
+            id1unit = "ML"
+        end
+
         resHTML =
             [[<tr>
                 <th align=right>]].._id1..[[:&nbsp;</th>
-                <th align=right>]]..id1amount..[[&nbsp;</th>
-                <th align=right>]]..string.format("%02.1f", id1percent)..[[%&nbsp;</th>
+                <th align=right>]]..string.format("%02.2f", id1amount)..[[&nbsp;</th>
+                <th align=right>]]..id1unit..[[&nbsp;</th>
                 ]]..BarGraph(id1percent)..[[
             </tr>]]
         return resHTML
@@ -162,10 +176,10 @@ function processTick()
     t1 = [[&nbsp;</span>
         <table style="text-transform: capitalize;  font-size: 5em; table-layout: auto; width: 100vw;">
         <tr style="width:100vw; background-color: blue; color: white;">]]
-    t2 = [[ <th style="width:38vw; text-align:right;">Type</th>
-            <th style="width:18vw; text-align:right;">KL</th>
-            <th style="width:18vw;">&nbsp;</th>
-            <th style="width:26vw;text-align:left;">Levels</th>
+    t2 = [[ <th style="width:40vw; text-align:right;">Type</th>
+            <th style="width:25vw; text-align:center;">Vol</th>
+            <th style="width:10vw;">&nbsp;</th>
+            <th style="width:25vw;text-align:left;">Levels</th>
         </tr>]]
     c1 = [[</table></div> ]]
 
