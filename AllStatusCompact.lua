@@ -158,9 +158,9 @@ function processTick()
         end 
         return "<td class=\"bar\" valign=top>"..
                     "<svg>"..
-                        "<rect x=\"0\" y=\"1\" rx=\"4\" ry=\"4\" height=\"2.2vw\" width=\"17.2vw\" stroke=\"white\" stroke-width=\"1\" rx=\"0\" />"..
-                        "<rect x=\"1\" y=\"2\" rx=\"3\" ry=\"3\" height=\"2.1vw\" width=\"" .. (17/100*percent) .. "vw\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0\"/>"..
-                        "<text x=\"2\" y=\"20\" fill=\"white\" text-align=\"center\" margin-left=\"3\">" .. string.format("%02.1f", percent) .. "%</text>"..
+                        "<rect x=\"0\" y=\"1\" rx=\"4\" ry=\"4\" height=\"2.5vw\" width=\"17.2vw\" stroke=\"white\" stroke-width=\"1\" rx=\"0\" />"..
+                        "<rect x=\"1\" y=\"2\" rx=\"3\" ry=\"3\" height=\"2.4vw\" width=\"" .. (17/100*percent) .. "vw\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0\"/>"..
+                        "<text x=\"2\" y=\"23\" fill=\"white\" text-align=\"center\" margin-left=\"3\">" .. string.format("%02.1f", percent) .. "%</text>"..
                     "</svg>"..
                 "</td>"        
     end
@@ -207,11 +207,11 @@ function processTick()
         return resHTML
     end
 
-    htmlHeader = [[<head><style>.bar { text-align: left; vertical-align: top; border-radius: 0 0em 0em 0; }</style></head>]]
+    htmlHeader = [[<head><style>.bar { text-align: left; vertical-align: top; font-family:Arial; border-radius: 0 0em 0em 0; }</style></head>]]
     d1 = [[<div class="bootstrap" style="text-align:left; vertical-align: text-top;">]]
-    d2 = [[<span style="text-transform: capitalize; font-size: 3em;">&nbsp;]]
+    d2 = [[<span style="text-transform: capitalize; font-family:Arial; font-size: 3em;">&nbsp;]]
     t1 = [[&nbsp;</span>
-        <table style="text-transform: capitalize; font-size: 2.4em; table-layout: auto; width: 100vw;">
+        <table style="text-transform: capitalize; font-family:Arial; font-size: 2.6em; table-layout: auto; width: 100vw;">
         <tr style="width:100vw; background-color: blue; color: white;">]]
     t2 = [[ <th style="width:20vw; text-align:center;">Type</th>
             <th style="width:8vw; text-align:center;">Vol</th>

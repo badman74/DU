@@ -169,11 +169,11 @@ function processTick()
         return resHTML
     end
 
-    htmlHeader = [[<head><style>.bar { text-align: left; vertical-align: top; border-radius: 0 0em 0em 0; }</style></head>]]
+    htmlHeader = [[<head><style>.bar { text-align: left; vertical-align: top; font-family:Arial; border-radius: 0 0em 0em 0; }</style></head>]]
     d1 = [[<div class="bootstrap" style="text-align:left; vertical-align: text-top;">]]
-    d2 = [[<span style="text-transform: capitalize; font-size: 2.5em;">&nbsp;]]
+    d2 = [[<span style="text-transform: capitalize; font-family:Arial; font-size: 2.5em;">&nbsp;]]
     t1 = [[&nbsp;</span>
-        <table style="text-transform: capitalize; font-size: 2em; table-layout: auto; width: 100vw;">
+        <table style="text-transform: capitalize; font-family:Arial; font-size: 2em; table-layout: auto; width: 100vw;">
         <tr style="width:100vw; background-color: blue; color: white;">]]
     t2 = [[ <th style="width:17vw; text-align:right;">Type</th>
             <th style="width:10vw; text-align:center;">Vol</th>
