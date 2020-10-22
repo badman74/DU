@@ -211,7 +211,7 @@ function processTick()
     d1 = [[<div class="bootstrap" style="text-align:left; vertical-align: text-top;">]]
     d2 = [[<span style="text-transform: capitalize; font-family:Arial; font-size: 3em;">&nbsp;]]
     t1 = [[&nbsp;</span>
-        <table style="text-transform: capitalize; font-family:Arial; font-size: 2.6em; table-layout: auto; width: 100vw;">
+        <table style="text-transform: capitalize; font-family:Arial; font-size: 2.5em; table-layout: auto; width: 100vw;">
         <tr style="width:100vw; background-color: blue; color: white;">]]
     t2 = [[ <th style="width:20vw; text-align:center;">Type</th>
             <th style="width:8vw; text-align:center;">Vol</th>
