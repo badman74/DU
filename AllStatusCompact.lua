@@ -202,7 +202,7 @@ function processTick()
                 <th style="background-color: blue;">&nbsp;</th>
                 <th align=right style="border-style:solid; border-color:blue;">]].._id2..[[:</th>
                 <th align=right style="border-style:solid; border-color:blue;">]]..string.format("%02.2f", id2amount)..id2unit..[[&nbsp;</th>
-                <td class="bar" style="]]..BarGraph(id1percent)..[[; background-repeat: repeat-y; margin-right: 1vw;border-right-width: 1vw; background-size:]]..((12/100)*id1percent)..[[vw">]]..string.format("%02.1f", id1percent)..[[%</td>
+                <td class="bar" style="]]..BarGraph(id2percent)..[[; background-repeat: repeat-y; margin-right: 1vw;border-right-width: 1vw; background-size:]]..((12/100)*id2percent)..[[vw">]]..string.format("%02.1f", id2percent)..[[%</td>
             </tr>]]
         return resHTML
     end
