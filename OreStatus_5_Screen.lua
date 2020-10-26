@@ -39,6 +39,9 @@ PlayerContainerOptimization = 0 --export Your Container Optimization bonus in to
 MinimumYellowPercent = 25 --export At which percent level do you want bars to be drawn in yellow (not red anymore)
 MinimumGreenPercent = 50 --export At which percent level do you want bars to be drawn in green (not yellow anymore)
 searchString = " Ore" --export Your identifier for Ore Storage Containers (e.g. "Bauxite Ore"). Include the spaces if you change this!
+headerFontSize = 8 --export Header font-size in em
+fontSize = 5 --export font-size in em
+font = "monospace" --export font-family Must be in "". Capitalization matters.
 
 function processTick()
 
@@ -46,20 +49,20 @@ function processTick()
     outputData = {}
 
      substanceMass = {
-        Bauxite=1.28;
-        Coal=1.35;
-        Quartz=2.65;
-        Hematite=5.04;
+        Bauxite=1.2812;
+        Coal=1.3459;
+        Quartz=2.6504;
+        Hematite=5.0401;
         Chromite=4.54;
-        Malachite=4;
-        Limestone=2.71;
-        Natron=1.55;
-        Petalite=2.41;
+        Malachite=4.0005;
+        Limestone=2.7105;
+        Natron=1.5499;
+        Petalite=2.4122;
         Garnierite=2.6;
         Acanthite=7.2;
-        Pyrite=5.01;
+        Pyrite=5.0098;
         Cobaltite=6.33;
-        Cryolite=2.95;
+        Cryolite=2.9495;
         Kolbeckite=2.37;
         GoldNuggets=19.3;
         Rhodonite=3.76;
@@ -67,6 +70,7 @@ function processTick()
         Illmenite=4.55;
         Vanadinite=6.95;
     }
+     
 
     function processSubstanceContainer(_id)
         local ContainerName = core.getElementNameById(_id)
@@ -76,6 +80,7 @@ function processTick()
 
         if SubstanceName~="" then
             SubstanceSingleMass=substanceMass[SubstanceName]
+            SubstanceColor=substanceMass[SubstanceName]*15
             if SubstanceSingleMass~=nil then
                 if ContainerMaxHP > 49 and ContainerMaxHP <=123 then
                     ContainerSelfMass = 0
@@ -96,7 +101,7 @@ function processTick()
 
                 local ContentMass=ContainerTotalMass-ContainerSelfMass
                 local OptimizedContentMass = ContentMass+ContentMass*(PlayerContainerOptimization/100)
-                local ContentAmount = (OptimizedContentMass/SubstanceSingleMass)
+                local ContentAmount = round((OptimizedContentMass/SubstanceSingleMass),1)
 
                 if outputData[SubstanceName]~=nil then
                     outputData[SubstanceName] = {
@@ -121,59 +126,57 @@ function processTick()
             processSubstanceContainer(elementsIds[i])
         end
     end
-
     function BarGraph(percent)
-        if percent <= 0 then barcolour = "red"
-        elseif percent > 0 and percent <= MinimumYellowPercent then barcolour = "red"
-        elseif percent > MinimumYellowPercent and percent <= MinimumGreenPercent then barcolour = "orange"
-        elseif percent > MinimumGreenPercent then  barcolour = "green"
-        else  barcolour = "green"
-        end 
-        return "<td class=\"bar\" valign=top>"..
-                    "<svg>"..
-                        "<rect x=\"0\" y=\"1\" rx=\"6\" ry=\"6\" height=\"5vw\" width=\"24.2vw\" stroke=\"white\" stroke-width=\"1\" rx=\"0\" />"..
-                        "<rect x=\"1\" y=\"2\" rx=\"5\" ry=\"5\" height=\"4.8vw\" width=\"" .. (24/100*percent) .. "vw\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0\"/>"..
-                        "<text x=\"2\" y=\"45\" fill=\"white\" text-align=\"center\" margin-left=\"3\">" .. string.format("%02.1f", percent) .. "%</text>"..
-                    "</svg>"..
-                "</td>"        
+         if percent <= 25 then return [[
+        	background: rgb(27,0,0);
+        	background: linear-gradient(90deg, rgba(27,0,0,.8) 0%, rgba(129,23,23,.8) 25%, rgba(251,0,0,.8) 100%);
+             ]]
+       	elseif percent > 25 and percent < 60 then return [[
+		   background: rgb(27,0,0);
+        	background: linear-gradient(90deg, rgba(27,0,0,.8) 0%, rgba(129,101,23,.8) 25%, rgba(251,202,0,.8) 100%);
+             ]]
+         else return [[
+        	background: rgb(5,27,0);
+        	background: linear-gradient(90deg, rgba(5,27,0,.8) 0%, rgba(38,129,23,.8) 25%, rgba(34,251,0,.8) 100%);
+             ]]
+       	end
     end
+    
 
     function AddHTMLEntry(_id1)
         local id1amount = 0
         local id1percent = 0
         if outputData[_id1]~=nil then 
             id1amount = outputData[_id1]["amount"]
-            id1percent = (outputData[_id1]["amount"])/outputData[_id1]["capacity"]*100
+            id1percent = (outputData[_id1]["amount"])/outputData[_id1]["capacity"]*100000
         end
 
-        if id1amount >= 1000000 then
-            id1amount = id1amount/1000000
+        if id1amount >= 1000 then
+            id1amount = id1amount/1000
             id1unit = "ML"
         else
-            id1amount = id1amount/1000
+            id1amount = id1amount
             id1unit = "KL"
         end
 
         resHTML =
             [[<tr>
-                <th align=right>]].._id1..[[:&nbsp;</th>
-                <th align=right>]]..string.format("%02.1f", id1amount)..[[&nbsp;</th>
-                <th align=left>]]..id1unit..[[&nbsp;</th>
-                ]]..BarGraph(id1percent)..[[
+                <th align=right>]].._id1..[[:</th>
+                <th align=right>]]..string.format("%02.2f", id1amount)..id1unit..[[&nbsp;</th>
+                <td class="bar" style="]]..BarGraph(id1percent)..[[; background-repeat: repeat-y; background-size:]]..((30/100)*id1percent)..[[vw">]]..string.format("%02.2f", id1percent)..[[%</td>
             </tr>]]
         return resHTML
     end
 
-    htmlHeader = [[<head><style>.bar { text-align: left; vertical-align: top; font-family:Arial; border-radius: 0 0em 0em 0; }</style></head>]]
-    d1 = [[<div class="bootstrap" style="text-align: center; vertical-align: text-top;">]]
-    d2 = [[<span style="text-transform: capitalize; font-family:Arial; font-size: 10em;">&nbsp;]]
+    htmlHeader = [[<head><style>td.bar {border-style: solid; border-right-width: 1vw; text-align: left; vertical-align: top; font-weight:bold; font-family:]]..font..[[;}</style></head>]]
+    d1 = [[<div class="bootstrap" style="text-align:left; vertical-align: text-top;">]]
+    d2 = [[<span style="text-transform: capitalize; font-family:]]..font..[[; font-size:]]..headerFontSize..[[em;">&nbsp;]]
     t1 = [[&nbsp;</span>
-        <table style="text-transform: capitalize; font-family:Arial; font-size: 5em; table-layout: auto; width: 100vw;">
+        <table style="text-transform: capitalize; font-family:]]..font..[[; font-size:]]..fontSize..[[em; table-layout: auto; width: 100vw;">
         <tr style="width:100vw; background-color: blue; color: white;">]]
-    t2 = [[ <th style="width:40vw; text-align:right;">Type</th>
+    t2 = [[ <th style="width:35vw; text-align:right;">Type</th>
             <th style="width:25vw; text-align:center;">Vol</th>
-            <th style="width:10vw;">&nbsp;</th>
-            <th style="width:25vw;text-align:left;">Levels</th>
+            <th style="width:30vw;text-align:left;">Levels</th>
         </tr>]]
     c1 = [[</table></div> ]]
 
@@ -181,8 +184,11 @@ function processTick()
         html=htmlHeader
         html=html..d1..d2.."Tier 1"..t1..t2
         html=html..AddHTMLEntry("Bauxite")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Coal")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Hematite")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Quartz")
         html=html..c1
         displayT1.setHTML(html)
@@ -191,8 +197,11 @@ function processTick()
         html=htmlHeader
         html=html..d1..d2.."Tier 2"..t1..t2
         html=html..AddHTMLEntry("Natron")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Malachite")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Limestone")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Chromite")
         html=html..c1
         displayT2.setHTML(html)
@@ -201,8 +210,11 @@ function processTick()
         html=htmlHeader
         html=html..d1..d2.."Tier 3"..t1..t2
         html=html..AddHTMLEntry("Petalite")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Garnierite")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Pyrite")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Acanthite")
         html=html..c1
         displayT3.setHTML(html)
@@ -211,8 +223,11 @@ function processTick()
         html=htmlHeader
         html=html..d1..d2.."Tier 4"..t1..t2
         html=html..AddHTMLEntry("Cobaltite")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Cryolite")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("GoldNuggets")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Kolbeckite")
         html=html..c1
         displayT4.setHTML(html)
@@ -221,8 +236,11 @@ function processTick()
         html=htmlHeader
         html=html..d1..d2.."Tier 5"..t1..t2
         html=html..AddHTMLEntry("Rhodonite")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Columbite")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Illmenite")
+        html=html.."<tr><td>&nbsp;</td></tr>"
         html=html..AddHTMLEntry("Vanadinite")
         html=html..c1
         displayT5.setHTML(html)

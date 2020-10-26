@@ -26,6 +26,9 @@ PlayerContainerOptimization = 0 --export Your Container Optimization bonus in to
 MinimumYellowPercent = 25 --export At which percent level do you want bars to be drawn in yellow (not red anymore)
 MinimumGreenPercent = 50 --export At which percent level do you want bars to be drawn in green (not yellow anymore)
 searchString = "Pure " --export Your identifier for Pure Storage Containers (e.g. "Pure Aluminum"). Include the spaces if you change this!
+headerFontSize = 3 --export Header font-size in em
+fontSize = 2.4 --export font-size in em
+font = "monospace" --export
 
 function processTick()
 
@@ -85,7 +88,7 @@ function processTick()
 
                 local ContentMass=ContainerTotalMass-ContainerSelfMass
                 local OptimizedContentMass = ContentMass+ContentMass*(PlayerContainerOptimization/100)
-                local ContentAmount = (OptimizedContentMass/SubstanceSingleMass)
+                local ContentAmount = round((OptimizedContentMass/SubstanceSingleMass),1)
 
                 if outputData[SubstanceName]~=nil then
                     outputData[SubstanceName] = {
@@ -112,19 +115,19 @@ function processTick()
     end
 
     function BarGraph(percent)
-        if percent <= 0 then barcolour = "red"
-        elseif percent > 0 and percent <= MinimumYellowPercent then barcolour = "red"
-        elseif percent > MinimumYellowPercent and percent <= MinimumGreenPercent then barcolour = "orange"
-        elseif percent > MinimumGreenPercent then  barcolour = "green"
-        else  barcolour = "green"
-        end 
-        return "<td class=\"bar\" valign=top>"..
-                    "<svg>"..
-                        "<rect x=\"0\" y=\"1\" rx=\"4\" ry=\"4\" height=\"2.2vw\" width=\"17.2vw\" stroke=\"white\" stroke-width=\"1\" rx=\"0\" />"..
-                        "<rect x=\"1\" y=\"2\" rx=\"3\" ry=\"3\" height=\"2.1vw\" width=\"" .. (17/100*percent) .. "vw\"  fill=\"" .. barcolour .. "\" opacity=\"1.0\" rx=\"0\"/>"..
-                        "<text x=\"2\" y=\"20\" fill=\"white\" text-align=\"center\" margin-left=\"3\">" .. string.format("%02.1f", percent) .. "%</text>"..
-                    "</svg>"..
-                "</td>"        
+         if percent <= 25 then return [[
+            background: rgb(27,0,0);
+            background: linear-gradient(90deg, rgba(27,0,0,.8) 0%, rgba(129,23,23,.8) 25%, rgba(251,0,0,.8) 100%);
+             ]]
+        elseif percent > 25 and percent < 60 then return [[
+           background: rgb(27,0,0);
+            background: linear-gradient(90deg, rgba(27,0,0,.8) 0%, rgba(129,101,23,.8) 25%, rgba(251,202,0,.8) 100%);
+             ]]
+         else return [[
+            background: rgb(5,27,0);
+            background: linear-gradient(90deg, rgba(5,27,0,.8) 0%, rgba(38,129,23,.8) 25%, rgba(34,251,0,.8) 100%);
+             ]]
+        end
     end
 
     function AddHTMLEntry(_id1, _id2)
@@ -134,56 +137,50 @@ function processTick()
         local id2percent = 0
         if outputData[_id1]~=nil then 
             id1amount = outputData[_id1]["amount"]
-            id1percent = (outputData[_id1]["amount"])/outputData[_id1]["capacity"]*100
+            id1percent = (outputData[_id1]["amount"])/outputData[_id1]["capacity"]*100000
         end
-        if id1amount >= 1000000 then
-            id1amount = id1amount/1000000
+        if id1amount >= 1000 then
+            id1amount = id1amount/1000
             id1unit = "ML"
         else
-            id1amount = id1amount/1000
             id1unit = "KL"
         end
         if outputData[_id2]~=nil then
             id2amount = outputData[_id2]["amount"]
-            id2percent = (outputData[_id2]["amount"])/outputData[_id2]["capacity"]*100
+            id2percent = (outputData[_id2]["amount"])/outputData[_id2]["capacity"]*100000
         end
-        if id2amount >= 1000000 then
-            id2amount = id2amount/1000000
+        if id2amount >= 1000 then
+            id2amount = id2amount/1000
             id2unit = "ML"
         else
-            id2amount = id2amount/1000
             id2unit = "KL"
         end
         resHTML =
             [[<tr>
-                <th align=right>]].._id1..[[:&nbsp;</th>
-                <th align=right>]]..string.format("%02.1f", id1amount)..[[&nbsp;</th>
-                <th align=left>]]..id1unit..[[&nbsp;</th>
-                ]]..BarGraph(id1percent)..[[
+                <th align=right style="border-style:solid; border-color:blue;">]].._id1..[[:</th>
+                <th align=right style="border-style:solid; border-color:blue;">]]..string.format("%02.2f", id1amount)..id1unit..[[&nbsp;</th>
+                <td class="bar" style="]]..BarGraph(id1percent)..[[; background-repeat: repeat-y; background-size:]]..((12.5/100)*id1percent)..[[vw">]]..string.format("%02.1f", id1percent)..[[%</td>
                 <th style="background-color: blue;">&nbsp;</th>
-                <th align=right>]].._id2..[[:&nbsp;</th>
-                <th align=right>]]..string.format("%02.1f", id2amount)..[[&nbsp;</th>
-                <th align=left>]]..id2unit..[[&nbsp;</th>
-                ]]..BarGraph(id2percent)..[[
+                <th align=right style="border-style:solid; border-color:blue;">]].._id2..[[:</th>
+                <th align=right style="border-style:solid; border-color:blue;">]]..string.format("%02.2f", id2amount)..id2unit..[[&nbsp;</th>
+                <td class="bar" style="]]..BarGraph(id2percent)..[[; background-repeat: repeat-y; margin-right: 1vw;border-right-width: 1vw; background-size:]]..((12/100)*id2percent)..[[vw">]]..string.format("%02.1f", id2percent)..[[%</td>
             </tr>]]
         return resHTML
     end
 
-    htmlHeader = [[<head><style>.bar { text-align: left; vertical-align: top; font-family:Arial; border-radius: 0 0em 0em 0; }</style></head>]]
+    htmlHeader = [[<head><style>td.bar {border-style: solid; border-color:blue; text-align: left; font-weight:bold; font-family:]]..font..[[;}</style></head>]]
     d1 = [[<div class="bootstrap" style="text-align:left; vertical-align: text-top;">]]
-    d2 = [[<span style="text-transform: capitalize; font-family:Arial; font-size: 2.5em;">&nbsp;]]
+    d2 = [[<span style="text-transform: capitalize; font-family:]]..font..[[; font-size:]]..headerFontSize..[[em;">&nbsp;]]
     t1 = [[&nbsp;</span>
-        <table style="text-transform: capitalize; font-family:Arial; font-size: 2em; table-layout: auto; width: 100vw;">
+        <table style="text-transform: capitalize; font-family:]]..font..[[; font-size:]]..fontSize..[[em; table-layout: auto; width: 100vw;">
         <tr style="width:100vw; background-color: blue; color: white;">]]
-    t2 = [[ <th style="width:17vw; text-align:right;">Type</th>
-            <th style="width:10vw; text-align:center;">Vol</th>
-            <th style="width:5vw;">&nbsp;</th>
-            <th style="width:18vw;text-align:left;">Levels</th>
+    t2 = [[ <th style="width:21vw; text-align:center;">Type</th>
+            <th style="width:16vw; text-align:center;">Vol</th>
+            <th style="width:14vw;text-align:center;">Levels</th>
             <th style="background-color: blue;">&nbsp;</th>
-            <th style="width:17vw; text-align:right;">Type</th>
-            <th style="width:10vw; text-align:center;">Vol</th>
-            <th style="width:5vw;">&nbsp;</th>
-            <th style="width:18vw;text-align:left;">Levels</th>
+            <th style="width:21vw; text-align:center;">Type</th>
+            <th style="width:16vw; text-align:center;">Vol</th>
+            <th style="width:14vw;text-align:center;">Levels</th>
         </tr>]]
     c1 = [[</table></div> ]]
 
